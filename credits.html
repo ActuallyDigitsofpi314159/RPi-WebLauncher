@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Credits &amp; Licenses · RPi WebLauncher</title>
   <script>try { if (localStorage.getItem('rpi-theme') === 'light') document.documentElement.classList.add('theme-light'); } catch (_) {}</script>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ActuallyDigitsofpi314159/RPi-WebLauncher@main/styles.css?v=20260801-2">
 </head>
 <body>
   <main class="credits-page">
-    <a class="back-link" href="index.html">&#8592; Back to library</a>
+    <a class="back-link" id="back-to-library" href="https://cdn.jsdelivr.net/gh/ActuallyDigitsofpi314159/RPi-WebLauncher@main/index.html">&#8592; Back to library</a>
     <p class="eyebrow"><span class="eyebrow-line"></span> THE PEOPLE BEHIND THE PIXELS</p>
     <h1>Credits &amp;<br><em>licenses.</em></h1>
     <p class="hero-text">A small home for games, experiments, and useful little web things made by curious people.</p>
@@ -34,6 +34,12 @@
     </section>
     <footer class="footer"><span>RPi WebLauncher</span><span class="footer-dot"></span><span>A little web arcade</span></footer>
   </main>
-  <script src="page-transition.js"></script>
+  <script>
+    document.querySelector('#back-to-library').addEventListener('click', event => {
+      event.preventDefault();
+      if (window.history.length > 1) window.history.back();
+      else window.location.href = event.currentTarget.href;
+    });
+  </script>
 </body>
 </html>

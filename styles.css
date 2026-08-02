@@ -15,6 +15,10 @@
   box-sizing:border-box;
 }
 
+[hidden] {
+  display:none !important;
+}
+
  html {
   min-width:320px;
   background:var(--bg);
@@ -31,6 +35,10 @@
   animation:page-in .42s ease both;
 }
 
+body.view-switching {
+  animation:view-switch .36s ease both;
+}
+
 html.page-leaving body {
   animation:page-out .24s ease both;
 }
@@ -43,6 +51,11 @@ html.page-leaving body {
 @keyframes page-out {
   from { opacity:1; transform:translateY(0); }
   to { opacity:0; transform:translateY(-8px); }
+}
+
+@keyframes view-switch {
+  0%, 100% { opacity:1; transform:translateY(0); }
+  50% { opacity:0; transform:translateY(-6px); }
 }
 
 
@@ -519,13 +532,31 @@ html.page-leaving body {
   font:10px 'DM Mono',monospace;
 }
 
-.verdict.warning {
+.verdict.performance-low {
+  color:#f07b83;
+}
+
+.verdict.performance-low i {
+  background:#f07b83;
+  box-shadow:0 0 10px #f07b83;
+}
+
+.verdict.performance-mid {
   color:#e4b45e;
 }
 
-.verdict.warning i {
+.verdict.performance-mid i {
   background:#e4b45e;
   box-shadow:0 0 10px #e4b45e;
+}
+
+.verdict.performance-high {
+  color:#9bd66f;
+}
+
+.verdict.performance-high i {
+  background:#9bd66f;
+  box-shadow:0 0 10px #9bd66f;
 }
 
  .launch-label {
@@ -812,6 +843,19 @@ code {
   color:var(--accent);
   font-family:'DM Mono', monospace;
   font-size:.9em;
+}
+
+.license-copy {
+  max-height:420px;
+  margin:20px 0 0;
+  padding:18px;
+  overflow:auto;
+  color:var(--muted);
+  background:var(--surface-2);
+  border:1px solid var(--line);
+  border-radius:8px;
+  white-space:pre-wrap;
+  font:10px/1.65 'DM Mono', monospace;
 }
 
 @media(max-width:520px) {

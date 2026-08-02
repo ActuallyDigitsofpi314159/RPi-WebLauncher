@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0a0b13">
   <title>RPi WebLauncher</title>
   <script>try { if (localStorage.getItem('rpi-theme') === 'light') document.documentElement.classList.add('theme-light'); } catch (_) {}</script>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ActuallyDigitsofpi314159/RPi-WebLauncher@main/styles.css?v=20260801-2">
 </head>
 <body>
   <div class="ambient ambient-one" aria-hidden="true"></div>
@@ -23,7 +23,7 @@
     </div>
   </header>
 
-  <main class="page-shell">
+  <main class="page-shell" id="launcher-view">
     <section class="hero">
       <div class="hero-copy">
         <p class="eyebrow"><span class="eyebrow-line"></span> YOUR LITTLE ARCADE</p>
@@ -48,10 +48,60 @@
     <section class="game-grid" id="game-grid" aria-live="polite"></section>
     <p class="empty-state" id="empty-state" hidden>No games found. Try another search.</p>
 
-    <footer class="footer"><span>RPi WebLauncher</span><span class="footer-dot"></span><a href="credits.html">Credits &amp; licenses</a><span class="footer-spacer"></span><span id="clock"></span></footer>
+    <footer class="footer"><span>RPi WebLauncher</span><span class="footer-dot"></span><a href="https://cdn.jsdelivr.net/gh/ActuallyDigitsofpi314159/RPi-WebLauncher@main/credits.html?v=20260801-2">Credits &amp; licenses</a><span class="footer-spacer"></span><span id="clock"></span></footer>
   </main>
-  <script src="games.js"></script>
-  <script src="app.js"></script>
-  <script src="page-transition.js"></script>
+  <section class="credits-page" id="credits-view" hidden>
+    <a class="back-link view-link" href="#launcher">&#8592; Back to library</a>
+    <p class="eyebrow"><span class="eyebrow-line"></span> THE PEOPLE BEHIND THE PIXELS</p>
+    <h1>Credits &amp;<br><em>licenses.</em></h1>
+    <p class="hero-text">A small home for games, experiments, and useful little web things made by curious people.</p>
+    <section class="credits-card">
+      <h2>Super Mario 64</h2>
+      <p>Created by <strong>ArkShocer</strong>. Included with attribution.</p>
+      <h2>Eaglercraft</h2>
+      <p>Created by <strong>PlanetDoge</strong>. The EaglerLite client notes and Apache 2.0 attribution are retained in the game file.</p>
+      <h2>GUST</h2>
+      <p>Created by <strong>Nautilus Labs</strong>.</p>
+      <h2>Granny</h2>
+      <p>Created by <strong>bubbls</strong>.</p>
+      <h2>Basketball Legends</h2>
+      <p>Created by <strong>faralong</strong>. This program carries a performance warning in the launcher.</p>
+      <h2>dumbLLM, Generic Platformer, Donkey Khan &amp; Path of Light</h2>
+      <p>Created by <strong>Digitsofpi314159 &amp; Kineto</strong>.</p>
+      <h2>RPi WebLauncher</h2>
+      <p>The launcher code and catalog were created by <strong>Digitsofpi314159 &amp; Kineto</strong>.</p>
+      <h2>License</h2>
+      <pre class="license-copy">MIT License
+
+Copyright (c) 2026 Digitsofpi314159 &amp; Kineto
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+Third-party games, artwork, fonts, libraries, and embedded projects keep their
+own licenses and belong to their respective creators. Keep original attribution
+and license text with third-party work, and obtain permission before redistributing it.</pre>
+    </section>
+    <footer class="footer"><span>RPi WebLauncher</span><span class="footer-dot"></span><span>A little web arcade</span></footer>
+  </section>
+
+  <script src="https://cdn.jsdelivr.net/gh/ActuallyDigitsofpi314159/RPi-WebLauncher@main/games.js?v=20260801-2"></script>
+  <script src="https://cdn.jsdelivr.net/gh/ActuallyDigitsofpi314159/RPi-WebLauncher@main/app.js?v=20260801-2"></script>
+  <script src="https://cdn.jsdelivr.net/gh/ActuallyDigitsofpi314159/RPi-WebLauncher@main/page-transition.js?v=20260801-2"></script>
 </body>
 </html>

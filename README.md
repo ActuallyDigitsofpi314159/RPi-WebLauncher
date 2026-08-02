@@ -7,28 +7,29 @@ You could even run this on a chromebook!
 
 ## What this is
 
-RPi WebLauncher is a compact launcher that runs browser games. The repo provides a tiny index.html you copy-paste to any device; it loads JS and CSS from jsDelivr so the local file stays very small.
+RPi WebLauncher is a compact launcher that runs browser programs. The root `index.html` is the portable copy-paste launcher: it loads the shared UI, catalog, and game files from this repository through jsDelivr.
 
 This project is the successor to my previous and now private c-hub.
 
 ## How it works
-1. Place the whole folder on your Pi and open `index.html`.
-2. Pick a game in the library.
-3. The launcher opens that game's standalone HTML file in a new browser window.
+1. Copy the root `index.html` or download it from the repository.
+2. Open it on your Pi, Chromebook, or desktop browser.
+3. Pick a program in the library. The launcher opens its CDN-hosted HTML file in a new browser window.
 
 ## Features
-- Static files only: no build step, server, or dependencies required.
+- Portable single-file launcher; no local server or build step required.
+- Shared assets are loaded from jsDelivr.
 - Premium UI for selecting games.
 - Games open in isolated about:blank windows
 - Optimized for lightweight hardware and minimal overhead
 
-## Adding a game
+## Adding a program
 
 1. Add a self-contained HTML file to `games/`.
-2. Add one object to `games.js` with its title, genre, rating, description, cover image, and file path.
-3. Add a square SVG/PNG cover to `assets/` and point the object's `image` field at it.
+2. Add its cover to `assets/`.
+3. Add one object to `games.js` with its title, category, rating, description, cover image, file path, and creator credit.
 
-The card catalog, search, filters, and launch behavior update automatically. The starter game files are intentionally simple placeholders ready to be replaced with your own games.
+The card catalog, search, filters, credits, and launch behavior update automatically after the changes are pushed to GitHub. Keep original third-party licenses and attribution with every program you add.
 
 ## Roadmap
 - Add my own small browser games and ports.

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SM64 Web</title>
+
+<style>
+html, body {
+    margin: 0;
+    padding: 0;
+    background: black;
+    overflow: hidden;
+    height: 100%;
+}
+
+/* 16:9 container */
+#game-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+canvas {
+    display: block;
+}
+
+/* Start screen */
+#start {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    background: radial-gradient(circle, #0a0a2e, black);
+    color: white;
+    z-index: 10;
+}
+
+#start button {
+    font-size: 28px;
+    padding: 12px 30px;
+    cursor: pointer;
+}
+</style>
+</head>
+<body>
+
+<div id="start">
+    <h1>SUPER MARIO 64</h1>
+    <button id="start-btn">CLICK TO START</button>
+</div>
+
+<div id="game-container">
+    <canvas id="canvas"></canvas>
+</div>
+
+<script>
+const canvas = document.getElementById("canvas");
+const container = document.getElementById("game-container");
+
+/* ================= FIXED SAFE RES ================= */
+canvas.width = 1280;
+canvas.height = 720;
+
+/* ================= 16:9 LETTERBOX ================= */
+function resize() {
+    const target = 16 / 9;
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+
+    let displayW, displayH;
+
+    if (w / h > target) {
+        displayH = h;
+        displayW = h * target;
+    } else {
+        displayW = w;
+        displayH = w / target;
+    }
+
+    container.style.width = displayW + "px";
+    container.style.height = displayH + "px";
+
+    canvas.style.width = displayW + "px";
+    canvas.style.height = displayH + "px";
+}
+window.addEventListener("resize", resize);
+resize();
+
+/* ================= INPUT SWAP ================= */
+const keyMap = {
+    KeyW: "ArrowUp",
+    KeyA: "ArrowLeft",
+    KeyS: "ArrowDown",
+    KeyD: "ArrowRight",
+
+    ArrowUp: "KeyW",
+    ArrowLeft: "KeyA",
+    ArrowDown: "KeyS",
+    ArrowRight: "KeyD",
+
+    Space: "KeyX",
+    ShiftLeft: "Space",
+    KeyE: "KeyC"
+};
+
+const keyCode = {
+    ArrowUp: 38, ArrowDown: 40, ArrowLeft: 37, ArrowRight: 39,
+    KeyW: 87, KeyA: 65, KeyS: 83, KeyD: 68,
+    KeyX: 88, KeyC: 67, Space: 32
+};
+
+const origAdd = EventTarget.prototype.addEventListener;
+
+EventTarget.prototype.addEventListener = function(type, listener, opts) {
+    if (type === "keydown" || type === "keyup") {
+        const wrapped = function(e) {
+            const mapped = keyMap[e.code];
+
+            if (mapped) {
+                const fake = new KeyboardEvent(type, {
+                    code: mapped,
+                    keyCode: keyCode[mapped],
+                    which: keyCode[mapped],
+                    bubbles: true
+                });
+                return listener.call(this, fake);
+            }
+            return listener.call(this, e);
+        };
+        return origAdd.call(this, type, wrapped, opts);
+    }
+    return origAdd.call(this, type, listener, opts);
+};
+
+/* mouse → punch */
+document.addEventListener("mousedown", e => {
+    if (e.button === 0) {
+        document.dispatchEvent(new KeyboardEvent("keydown", { code: "KeyC", keyCode: 67 }));
+    }
+});
+document.addEventListener("mouseup", e => {
+    if (e.button === 0) {
+        document.dispatchEvent(new KeyboardEvent("keyup", { code: "KeyC", keyCode: 67 }));
+    }
+});
+
+/* ================= START ================= */
+document.getElementById("start-btn").addEventListener("click", async () => {
+
+    // unlock audio FIRST (must be inside user gesture)
+    try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        await ctx.resume();
+    } catch (e) {
+        console.warn("Audio init failed:", e);
+    }
+
+    // setup module BEFORE loading script
+    window.Module = {
+        canvas: canvas
+    };
+
+    // load game
+    const script = document.createElement("script");
+    script.src = "https://cdn.jsdelivr.net/gh/ArkShocer/sm64@main/sm64.us.f3dex2e.js";
+    script.async = true;
+
+    script.onload = () => {
+        console.log("SM64 loaded");
+    };
+
+    script.onerror = () => {
+        alert("Failed to load SM64 script.");
+    };
+
+    document.body.appendChild(script);
+
+    // hide UI AFTER starting load (so it doesn't block clicks)
+    document.getElementById("start").style.display = "none";
+});
+</script>
+
+</body>
+</html>

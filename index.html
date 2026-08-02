@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0a0b13">
+  <title>RPi WebLauncher</title>
+  <script>try { if (localStorage.getItem('rpi-theme') === 'light') document.documentElement.classList.add('theme-light'); } catch (_) {}</script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="ambient ambient-one" aria-hidden="true"></div>
+  <div class="ambient ambient-two" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <button class="brand" type="button" aria-label="RPi WebLauncher home">
+      <span class="brand-mark"><span></span><span></span><span></span></span>
+      <span>RPi <b>WebLauncher</b></span>
+    </button>
+    <div class="topbar-actions">
+      <span class="system-status"><i></i> Local library</span>
+      <button class="icon-button" id="theme-toggle" type="button" aria-label="Switch to light mode" title="Switch to light mode">&#9788;</button>
+    </div>
+  </header>
+
+  <main class="page-shell">
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow"><span class="eyebrow-line"></span> YOUR LITTLE ARCADE</p>
+        <h1>Play something<br><em>beautiful.</em></h1>
+        <p class="hero-text">A hand-picked collection of games, tuned for the little computer that could.</p>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <div class="orb orb-back"></div><div class="orb orb-front"></div>
+        <div class="hero-ring"></div>
+        <span class="pixel pixel-one"></span><span class="pixel pixel-two"></span><span class="pixel pixel-three"></span>
+      </div>
+    </section>
+
+    <section class="toolbar" aria-label="Game filters">
+      <div class="section-heading"><span class="section-kicker">LIBRARY</span><span class="game-count" id="game-count"></span></div>
+      <div class="controls">
+        <label class="search-box"><span aria-hidden="true">&#8982;</span><input id="search" type="search" placeholder="Find a game..." autocomplete="off"></label>
+        <div class="filter-pills" id="filters" role="tablist" aria-label="Filter games"></div>
+      </div>
+    </section>
+
+    <section class="game-grid" id="game-grid" aria-live="polite"></section>
+    <p class="empty-state" id="empty-state" hidden>No games found. Try another search.</p>
+
+    <footer class="footer"><span>RPi WebLauncher</span><span class="footer-dot"></span><a href="credits.html">Credits &amp; licenses</a><span class="footer-spacer"></span><span id="clock"></span></footer>
+  </main>
+  <script src="games.js"></script>
+  <script src="app.js"></script>
+  <script src="page-transition.js"></script>
+</body>
+</html>

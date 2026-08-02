@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>dumLLM</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap');
+
+  :root{
+    --bg:#090a10;
+    --surface:#11131c;
+    --surface-2:#171a25;
+    --line:#272a38;
+    --text:#f5f4f0;
+    --muted:#9294a5;
+    --accent:#b8f279;
+    --accent-2:#8b7cff;
+    --danger:#ff6b81;
+  }
+
+  *{ box-sizing:border-box; }
+  html{ min-width:320px; }
+
+  body{
+    margin:0;
+    height:100vh;
+    display:flex;
+    flex-direction:column;
+    color:var(--text);
+    background:var(--bg);
+    font-family:Manrope, sans-serif;
+    -webkit-font-smoothing:antialiased;
+    overflow:hidden;
+    transition:background .3s, color .3s;
+  }
+
+  button, input, textarea{ font-family:inherit; }
+
+  /* ambient background glow, matches the source style */
+  .ambient{
+    position:fixed; width:520px; height:520px; border-radius:50%;
+    filter:blur(100px); opacity:.12; pointer-events:none; z-index:0;
+  }
+  .ambient-one{ background:#8b7cff; top:-250px; right:-100px; }
+  .ambient-two{ background:#b8f279; bottom:-320px; left:-220px; }
+
+  /* ============================================================
+     TOPBAR
+     ============================================================ */
+  .topbar{
+    position:relative; z-index:1;
+    max-width:1280px; width:100%; margin:auto;
+    height:72px; padding:0 32px;
+    display:flex; align-items:center; justify-content:space-between;
+    border-bottom:1px solid rgba(255,255,255,.07);
+    flex-shrink:0;
+  }
+
+  .brand{ display:flex; gap:12px; align-items:center; font-size:14px; font-weight:600; letter-spacing:.01em; }
+  .brand b{ font-weight:800; }
+  .brand-mark{ width:25px; height:25px; flex-shrink:0; }
+
+  .topbar-actions{ display:flex; align-items:center; gap:20px; }
+
+  .system-status{ display:flex; align-items:center; color:var(--muted); font:11px 'DM Mono', monospace; letter-spacing:.02em; }
+  .system-status i{
+    display:inline-block; width:6px; height:6px; margin-right:8px; border-radius:50%;
+    background:var(--muted); transition:background .3s, box-shadow .3s;
+  }
+  .system-status.state-ready i{ background:var(--accent); box-shadow:0 0 10px var(--accent); }
+  .system-status.state-loading i{ background:var(--accent-2); box-shadow:0 0 10px var(--accent-2); animation:pulse 1.4s ease-in-out infinite; }
+  .system-status.state-error i{ background:var(--danger); box-shadow:0 0 10px var(--danger); }
+
+  /* ============================================================
+     LOAD PROGRESS — driven by WebLLM's initProgressCallback
+     ============================================================ */
+  .progress-wrap{
+    position:relative; z-index:1;
+    height:2px; width:100%;
+    background:var(--surface-2);
+    flex-shrink:0;
+  }
+  .progress-bar{
+    height:100%; width:0%;
+    background:linear-gradient(90deg, var(--accent-2), var(--accent));
+    transition:width .25s ease;
+  }
+
+  .icon-button{
+    border:0; background:none; color:var(--muted); cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    width:32px; height:32px; border-radius:8px;
+    transition:color .2s, transform .2s, background .2s;
+  }
+  .icon-button:hover{ color:var(--text); background:var(--surface); transform:rotate(20deg); }
+  .icon-button svg{ width:16px; height:16px; }
+
+  /* ============================================================
+     TOOLBAR — model picker + system prompt toggle
+     ============================================================ */
+  .toolbar{
+    position:relative; z-index:1;
+    max-width:1280px; width:100%; margin:auto;
+    padding:18px 32px 16px;
+    display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;
+    flex-shrink:0;
+  }
+
+  .section-kicker{ color:var(--accent); font:500 10px 'DM Mono', monospace; letter-spacing:.19em; }
+
+  .controls{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+
+  .filter-pills{ display:flex; gap:6px; flex-wrap:wrap; }
+  .filter-pill{
+    padding:8px 14px; color:var(--muted); background:transparent;
+    border:1px solid var(--line); border-radius:20px; cursor:pointer;
+    font:11px Manrope; transition:.2s; white-space:nowrap;
+  }
+  .filter-pill:hover{ color:var(--text); }
+  .filter-pill.active{ color:var(--bg); background:var(--accent); border-color:var(--accent); font-weight:600; }
+  .filter-pill:disabled{ opacity:.4; cursor:not-allowed; }
+  .pill-vram{ font-family:'DM Mono', monospace; font-size:9.5px; opacity:.6; }
+  .filter-pill.active .pill-vram{ opacity:.65; }
+
+  #sys-toggle.active{ color:var(--text); background:var(--surface-2); border-color:var(--line); }
+
+  /* ============================================================
+     SYSTEM PROMPT PANEL
+     ============================================================ */
+  .sys-panel{
+    position:relative; z-index:1;
+    max-width:1280px; width:100%; margin:auto;
+    padding:0 32px 18px;
+    flex-shrink:0;
+  }
+  .sys-panel textarea{
+    width:100%; min-height:76px; resize:vertical;
+    background:var(--surface); border:1px solid var(--line); border-radius:10px;
+    color:var(--text); font:13px Manrope; padding:12px 14px; outline:none;
+    transition:border-color .2s;
+  }
+  .sys-panel textarea:focus{ border-color:var(--accent-2); }
+  .sys-hint{ margin-top:6px; color:var(--muted); font:10px 'DM Mono', monospace; letter-spacing:.02em; }
+
+  /* ============================================================
+     CHAT
+     ============================================================ */
+  .chat{
+    position:relative; z-index:1;
+    flex:1; overflow-y:auto;
+    max-width:1280px; width:100%; margin:auto;
+    padding:8px 32px 24px;
+    display:flex; flex-direction:column; gap:16px;
+  }
+
+  .empty-state{
+    flex:1; margin:auto; text-align:center; max-width:340px;
+    display:flex; flex-direction:column; align-items:center; gap:14px;
+    color:var(--muted); pointer-events:none; user-select:none;
+  }
+  .empty-state .eyebrow{ display:flex; align-items:center; gap:12px; color:var(--accent); font:500 10px 'DM Mono', monospace; letter-spacing:.19em; }
+  .empty-state .eyebrow-line{ width:27px; height:1px; background:var(--accent); }
+  .empty-state p{ margin:0; line-height:1.7; font-size:13px; }
+
+  .msg{ max-width:78%; padding:14px 18px; border-radius:14px; line-height:1.65; font-size:14.5px; animation:rise .4s both; }
+  .msg.user{
+    align-self:flex-end; color:#fff; background:linear-gradient(135deg, var(--accent-2), #6f5fe0);
+    border-bottom-right-radius:4px;
+  }
+  .msg.ai{
+    align-self:flex-start; background:var(--surface); border:1px solid var(--line);
+    border-bottom-left-radius:4px;
+  }
+  .ai-text{ white-space:pre-wrap; word-break:break-word; }
+  .ai-text p{ margin:10px 0; }
+  .ai-text p:first-child{ margin-top:0; }
+  .ai-text p:last-child{ margin-bottom:0; }
+
+  .code-block{ background:var(--bg); border:1px solid var(--line); border-radius:8px; margin:10px 0; overflow:hidden; }
+  .code-header{
+    background:var(--surface-2); padding:7px 14px; font:11px 'DM Mono', monospace;
+    color:var(--muted); display:flex; justify-content:space-between; align-items:center;
+  }
+  .code-content{ padding:14px; font-family:'DM Mono', monospace; font-size:12.5px; overflow-x:auto; color:var(--text); white-space:pre; }
+  .copy-btn{
+    background:var(--accent); color:var(--bg); border:none; padding:3px 10px;
+    border-radius:4px; cursor:pointer; font:10px 'DM Mono', monospace; font-weight:500;
+  }
+  .copy-btn:hover{ background:#c8ff96; }
+
+  .thinking{ color:var(--muted); font-style:italic; }
+
+  /* ============================================================
+     INPUT AREA
+     ============================================================ */
+  .input-area{
+    position:relative; z-index:1;
+    max-width:1280px; width:100%; margin:auto;
+    padding:16px 32px 24px;
+    display:flex; align-items:center; gap:10px;
+    flex-shrink:0;
+  }
+  #user-input{
+    flex:1; background:var(--surface); border:1px solid var(--line);
+    color:var(--text); padding:13px 18px; border-radius:25px; outline:none; font-size:14px;
+    transition:border-color .2s;
+  }
+  #user-input:focus{ border-color:var(--accent-2); }
+  #user-input:disabled{ opacity:.5; }
+  #send-btn{
+    background:var(--accent); color:var(--bg); border:none; padding:0 26px; height:46px;
+    border-radius:25px; cursor:pointer; font-weight:700; font-size:13px; white-space:nowrap;
+    transition:background .2s, transform .2s;
+  }
+  #send-btn:hover:not(:disabled){ background:#c8ff96; transform:translateY(-1px); }
+  #send-btn:disabled{ background:var(--surface-2); color:var(--muted); cursor:wait; }
+
+  /* ============================================================
+     ANIMATIONS
+     ============================================================ */
+  @keyframes rise{ from{ opacity:0; transform:translateY(10px); } to{ opacity:1; transform:translateY(0); } }
+  @keyframes pulse{ 0%,100%{ opacity:1; } 50%{ opacity:.35; } }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:.001ms !important; transition-duration:.001ms !important; }
+  }
+
+  /* ============================================================
+     RESPONSIVE
+     ============================================================ */
+  @media (max-width:800px){
+    .topbar{ padding:0 18px; }
+    .toolbar{ padding:16px 18px 14px; flex-direction:column; align-items:flex-start; }
+    .sys-panel{ padding:0 18px 16px; }
+    .chat{ padding:8px 18px 20px; }
+    .input-area{ padding:14px 18px 20px; }
+    .msg{ max-width:88%; }
+  }
+  @media (max-width:520px){
+    .system-status span{ display:none; }
+    .filter-pills{ overflow-x:auto; flex-wrap:nowrap; max-width:100%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="ambient ambient-one"></div>
+<div class="ambient ambient-two"></div>
+
+<header class="topbar">
+  <div class="brand">
+    <svg class="brand-mark" viewBox="0 0 25 25" fill="none">
+      <circle cx="6" cy="19" r="2.6" fill="var(--accent-2)"/>
+      <circle cx="19" cy="19" r="2.6" fill="var(--accent-2)"/>
+      <circle cx="12.5" cy="6" r="3.2" fill="var(--accent)"/>
+      <path d="M12.5 9.2V15M12.5 15L6 16.6M12.5 15L19 16.6" stroke="#555665" stroke-width="1.4"/>
+    </svg>
+    <b>dumLLM</b>
+  </div>
+  <div class="topbar-actions">
+    <div class="system-status" id="status"><i></i><span id="status-text">Not initialized</span></div>
+    <button class="icon-button" id="clear-btn" aria-label="Clear conversation" title="Clear conversation">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>
+    </button>
+  </div>
+</header>
+
+<div class="progress-wrap" id="progress-wrap" hidden>
+  <div class="progress-bar" id="progress-bar"></div>
+</div>
+
+
+<div class="toolbar">
+  <span class="section-kicker">MODEL</span>
+  <div class="controls">
+    <div class="filter-pills" id="model-pills"></div>
+    <button class="filter-pill" id="sys-toggle">System prompt</button>
+  </div>
+</div>
+
+<div class="sys-panel" id="sys-panel" hidden>
+  <textarea id="sys-input" placeholder="e.g. You are a helpful assistant that answers concisely."></textarea>
+  <div class="sys-hint">APPLIED ON NEXT INITIALIZE — EDITING MID-CONVERSATION WON'T AFFECT ALREADY-LOADED CONTEXT</div>
+</div>
+
+<main class="chat" id="chat">
+  <div class="empty-state" id="empty-state">
+    <div class="eyebrow"><span class="eyebrow-line"></span>LOCAL INFERENCE</div>
+    <p>Pick a model above, then press Initialize to load it and run it entirely in your browser.</p>
+  </div>
+</main>
+
+<footer class="input-area">
+  <input type="text" id="user-input" placeholder="Initialize to start..." disabled autocomplete="off">
+  <button id="send-btn">Initialize</button>
+</footer>
+
+<script type="module">
+  import * as webllm from "https://esm.run/@mlc-ai/web-llm";
+
+  // Ordered lightest → heaviest. VRAM figures are from MLC's published
+  // prebuilt model list (mlc-ai/web-llm), so they're what the engine
+  // actually needs to load each one — not estimates.
+  const MODELS = [
+    { id: "Llama-3.2-1B-Instruct-q4f16_1-MLC", label: "Llama 3.2 1B", vram: "~880MB" },
+    { id: "Llama-3.2-3B-Instruct-q4f16_1-MLC", label: "Llama 3.2 3B", vram: "~2.3GB" },
+    { id: "Phi-4-mini-instruct-q4f16_1-MLC", label: "Phi-4 Mini", vram: "~3.4GB" },
+  ];
+
+  let engine = null;
+  let isReady = false;
+  let isBusy = false; // loading or generating — disables model switching
+  let selectedModel = "Llama-3.2-1B-Instruct-q4f16_1-MLC"; // small + capable default for weak hardware
+  let chatHistory = [];
+
+  const statusEl   = document.getElementById("status");
+  const statusText = document.getElementById("status-text");
+  const progressWrap = document.getElementById("progress-wrap");
+  const progressBar  = document.getElementById("progress-bar");
+  const sendBtn    = document.getElementById("send-btn");
+  const chatDiv    = document.getElementById("chat");
+  const userInput  = document.getElementById("user-input");
+  const clearBtn   = document.getElementById("clear-btn");
+  const sysToggle  = document.getElementById("sys-toggle");
+  const sysPanel   = document.getElementById("sys-panel");
+  const sysInput   = document.getElementById("sys-input");
+  const emptyState = document.getElementById("empty-state");
+  const pillWrap   = document.getElementById("model-pills");
+
+  // ---- status pill ----
+  function setStatus(state, text){
+    statusEl.className = "system-status" + (state ? " state-" + state : "");
+    statusText.textContent = text;
+  }
+
+  // ---- model pills ----
+  function renderModelPills(){
+    pillWrap.innerHTML = "";
+    MODELS.forEach(m => {
+      const btn = document.createElement("button");
+      btn.className = "filter-pill" + (m.id === selectedModel ? " active" : "");
+      btn.innerHTML = `${m.label} <span class="pill-vram">${m.vram}</span>`;
+      btn.title = `${m.id} — ${m.vram} VRAM`;
+      btn.disabled = isBusy;
+      btn.onclick = () => {
+        if (m.id === selectedModel) return;
+        selectedModel = m.id;
+        if (isReady) {
+          resetToInitializeState();
+          setStatus(null, "Model changed — press Initialize to load.");
+        }
+        renderModelPills();
+      };
+      pillWrap.appendChild(btn);
+    });
+  }
+  renderModelPills();
+
+  // ---- system prompt toggle ----
+  sysToggle.onclick = () => {
+    const open = sysPanel.hasAttribute("hidden");
+    if (open) sysPanel.removeAttribute("hidden"); else sysPanel.setAttribute("hidden", "");
+    sysToggle.classList.toggle("active", open);
+  };
+
+  // ---- clear chat ----
+  clearBtn.onclick = () => {
+    chatHistory = [];
+    chatDiv.innerHTML = "";
+    chatDiv.appendChild(emptyState);
+  };
+
+  // ---- progress callback — uses WebLLM's own reported fraction/text ----
+  const initProgressCallback = (p) => {
+    setStatus("loading", p.text || "Loading...");
+    progressWrap.removeAttribute("hidden");
+    const pct = typeof p.progress === "number" ? Math.min(100, Math.round(p.progress * 100)) : 0;
+    progressBar.style.width = pct + "%";
+  };
+
+  // ---- format model response (markdown-lite) ----
+  function formatResponse(text){
+    const container = document.createElement("div");
+    container.className = "ai-text";
+    const parts = text.split(/(```[\s\S]*?```)/g);
+    for (let part of parts){
+      if (part.startsWith("```")){
+        const match = part.match(/```(\w*)\n?([\s\S]*?)```/);
+        if (match){
+          const lang = match[1] || "text";
+          const code = match[2].trim();
+          const block = document.createElement("div");
+          block.className = "code-block";
+          const hdr = document.createElement("div");
+          hdr.className = "code-header";
+          hdr.innerHTML = `<span>${lang}</span><button class="copy-btn">Copy</button>`;
+          const content = document.createElement("div");
+          content.className = "code-content";
+          content.textContent = code;
+          hdr.querySelector(".copy-btn").onclick = () => {
+            navigator.clipboard.writeText(code);
+            const btn = hdr.querySelector(".copy-btn");
+            btn.textContent = "Copied";
+            setTimeout(() => btn.textContent = "Copy", 1500);
+          };
+          block.appendChild(hdr);
+          block.appendChild(content);
+          container.appendChild(block);
+          continue;
+        }
+      }
+      if (!part.trim()) continue;
+      const lines = part.split('\n');
+      let currentList = null, listType = null;
+      for (let line of lines){
+        let t = line.trim();
+        if (/^(-{3,}|_{3,}|\*{3,})$/.test(t)){
+          const hr = document.createElement("hr");
+          hr.style.cssText = "border:none;border-top:1px solid var(--line);margin:16px 0;";
+          container.appendChild(hr); currentList = null; continue;
+        }
+        if (t.startsWith(">")){
+          const q = document.createElement("blockquote");
+          q.style.cssText = "border-left:3px solid var(--accent-2);padding-left:14px;margin:12px 0;color:var(--muted);";
+          q.innerHTML = t.replace(/^>\s?/, '');
+          container.appendChild(q); currentList = null; continue;
+        }
+        const hm = t.match(/^(#{1,6})\s+(.+)$/);
+        if (hm){
+          const h = document.createElement(`h${hm[1].length}`);
+          h.innerHTML = inlinemd(hm[2]);
+          h.style.margin = hm[1].length === 1 ? "20px 0 10px 0" : "16px 0 8px 0";
+          container.appendChild(h); currentList = null; continue;
+        }
+        const lm = t.match(/^(\s*)([-*+]|\d+\.)\s+(.+)$/);
+        if (lm){
+          const numbered = lm[2].endsWith('.');
+          if (!currentList || (numbered && listType !== "ol") || (!numbered && listType !== "ul")){
+            const nl = document.createElement(numbered ? "ol" : "ul");
+            nl.style.cssText = "margin:8px 0 8px 20px;padding-left:8px;";
+            container.appendChild(nl);
+            currentList = nl; listType = numbered ? "ol" : "ul";
+          }
+          const li = document.createElement("li");
+          li.innerHTML = inlinemd(lm[3]);
+          currentList.appendChild(li); continue;
+        }
+        if (t){
+          const p = document.createElement("p");
+          p.innerHTML = inlinemd(t);
+          container.appendChild(p); currentList = null;
+        }
+      }
+    }
+    return container;
+  }
+
+  function inlinemd(text){
+    return text
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*([^\*]+?)\*/g, '<em>$1</em>')
+      .replace(/_(.+?)_/g, '<em>$1</em>')
+      .replace(/`(.+?)`/g, '<code style="background:var(--surface-2);padding:2px 6px;border-radius:4px;font-family:\'DM Mono\',monospace;">$1</code>');
+  }
+
+  // ---- reset ----
+  function resetToInitializeState(){
+    isReady = false;
+    isBusy = false;
+    sendBtn.textContent = "Initialize";
+    sendBtn.disabled = false;
+    userInput.disabled = true;
+    userInput.placeholder = "Initialize to start...";
+    if (engine){ try { engine.terminate(); } catch(e){} engine = null; }
+    renderModelPills();
+  }
+
+  // ---- init engine ----
+  async function initWebLLM(){
+    isBusy = true;
+    sendBtn.disabled = true;
+    sendBtn.textContent = "Loading...";
+    renderModelPills();
+    setStatus("loading", "Creating engine...");
+    try {
+      if (!navigator.gpu) throw new Error("WebGPU not supported in this browser");
+      if (engine){ try { await engine.terminate(); } catch(e){} }
+      engine = new webllm.MLCEngine({ initProgressCallback });
+      setStatus("loading", `Loading ${selectedModel}...`);
+      await engine.reload(selectedModel);
+      isReady = true;
+      isBusy = false;
+      sendBtn.textContent = "Send";
+      sendBtn.disabled = false;
+      userInput.disabled = false;
+      userInput.placeholder = "Ask me something...";
+      userInput.focus();
+      setStatus("ready", `Ready — ${selectedModel}`);
+      renderModelPills();
+    } catch (e){
+      console.error(e);
+      isBusy = false;
+      setStatus("error", "Error: " + e.message);
+      sendBtn.textContent = "Try Again";
+      sendBtn.disabled = false;
+      renderModelPills();
+    }
+  }
+
+  // ---- chat ----
+  async function chat(){
+    const prompt = userInput.value.trim();
+    if (!prompt || !isReady) return;
+
+    emptyState.remove();
+
+    const uBox = document.createElement("div");
+    uBox.className = "msg user";
+    uBox.textContent = prompt;
+    chatDiv.appendChild(uBox);
+
+    const aBox = document.createElement("div");
+    aBox.className = "msg ai";
+    aBox.innerHTML = '<span class="thinking">thinking...</span>';
+    chatDiv.appendChild(aBox);
+    chatDiv.scrollTop = chatDiv.scrollHeight;
+    userInput.value = "";
+    sendBtn.disabled = true;
+
+    const messages = [];
+    const sysPrompt = sysInput.value.trim();
+    if (sysPrompt) messages.push({ role: "system", content: sysPrompt });
+    messages.push(...chatHistory);
+    messages.push({ role: "user", content: prompt });
+
+    let fullText = "";
+    try {
+      const completion = await engine.chat.completions.create({ messages, stream: true, temperature: 0.7 });
+      for await (const chunk of completion){
+        const delta = chunk.choices[0]?.delta?.content || "";
+        if (delta){
+          fullText += delta;
+          aBox.innerHTML = "";
+          aBox.appendChild(formatResponse(fullText));
+          chatDiv.scrollTop = chatDiv.scrollHeight;
+        }
+      }
+      chatHistory.push({ role: "user", content: prompt });
+      chatHistory.push({ role: "assistant", content: fullText });
+    } catch (e){
+      aBox.textContent = "Error: " + e.message;
+    }
+
+    chatDiv.scrollTop = chatDiv.scrollHeight;
+    sendBtn.disabled = false;
+    userInput.focus();
+  }
+
+  // ---- events ----
+  sendBtn.onclick = () => { if (isReady) chat(); else initWebLLM(); };
+  userInput.onkeydown = (e) => { if (e.key === "Enter" && isReady){ e.preventDefault(); chat(); } };
+
+  resetToInitializeState();
+  setStatus(null, "Not initialized");
+</script>
+</body>
+</html>

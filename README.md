@@ -12,22 +12,23 @@ RPi WebLauncher is a compact launcher that runs browser games. The repo provides
 This project is the successor to my previous and now private c-hub.
 
 ## How it works
-1.	Place or open index.html on your Pi
-1.	index.html loads launcher assets from jsDelivr.
-1.	Press Launch: the launcher opens anabout:blank tab and injects the UI
-1.	Pick a game in the UI.
-1.	Opening a game launches it in a separate about:blank window.
+1. Place the whole folder on your Pi and open `index.html`.
+2. Pick a game in the library.
+3. The launcher opens that game's standalone HTML file in a new browser window.
 
 ## Features
-- Tiny file (index.html) copy, paste, run. It just works.
+- Static files only: no build step, server, or dependencies required.
 - Premium UI for selecting games.
 - Games open in isolated about:blank windows
 - Optimized for lightweight hardware and minimal overhead
 
-## Usage (quick)
-- Download or copy index.html to your Pi.
-- Run it in a modern browser.
-- Click Launch, choose a game, and enjoy.
+## Adding a game
+
+1. Add a self-contained HTML file to `games/`.
+2. Add one object to `games.js` with its title, genre, rating, description, cover image, and file path.
+3. Add a square SVG/PNG cover to `assets/` and point the object's `image` field at it.
+
+The card catalog, search, filters, and launch behavior update automatically. The starter game files are intentionally simple placeholders ready to be replaced with your own games.
 
 ## Roadmap
 - Add my own small browser games and ports.

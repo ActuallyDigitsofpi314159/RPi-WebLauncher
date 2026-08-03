@@ -29,7 +29,7 @@ This project is the successor to my previous and now private c-hub.
 2. Add its cover to `assets/`.
 3. Add one object to the `GAMES` array inside `games.js` with its title, category, rating, description, cover image, file path, and creator credit.
 
-The card catalog, search, filters, credits, and launch behavior update automatically after the changes are pushed to GitHub. Keep original third-party licenses and attribution with every program you add.
+The portable launcher is pinned to a commit hash so jsDelivr cannot serve an older `main` snapshot. Update the hash in `index.html` and `games.js` when publishing a new launcher build. Keep original third-party licenses and attribution with every program you add.
 
 ## Roadmap
 - Add my own small browser games and ports.

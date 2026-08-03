@@ -1,5 +1,5 @@
-const CDN_BASE = 'https://cdn.jsdelivr.net/gh/ActuallyDigitsofpi314159/RPi-WebLauncher@main/';
-const CACHE_BUST = '20260802-2';
+const CDN_BASE = 'https://cdn.jsdelivr.net/gh/ActuallyDigitsofpi314159/RPi-WebLauncher@28fe56e24690c68141815be92fcbed2614a5848e/';
+const CACHE_BUST = '28fe56e';
 const cdn = path => `${CDN_BASE}${path}?v=${CACHE_BUST}`;
 
 const GAMES = [

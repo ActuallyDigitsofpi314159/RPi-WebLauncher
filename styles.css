@@ -425,12 +425,12 @@ html.page-leaving body {
 }
 
 /* Every cover is forced into a square frame; non-square images are cropped. */
- .cover-wrap {
+.cover-wrap {
   width:100%;
   position:relative;
   overflow:hidden;
   aspect-ratio:1/1;
-  background:#20202b;
+  background:#fff;
 }
 
  .cover {

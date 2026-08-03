@@ -27,7 +27,7 @@ This project is the successor to my previous and now private c-hub.
 
 1. Add a self-contained HTML file to `games/`.
 2. Add its cover to `assets/`.
-3. Add one object to `games.js` with its title, category, rating, description, cover image, file path, and creator credit.
+3. Add one object to the `GAMES` array inside `games.js` with its title, category, rating, description, cover image, file path, and creator credit.
 
 The card catalog, search, filters, credits, and launch behavior update automatically after the changes are pushed to GitHub. Keep original third-party licenses and attribution with every program you add.
 

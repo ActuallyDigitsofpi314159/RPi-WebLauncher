@@ -6,7 +6,9 @@
   <meta name="theme-color" content="#0a0b13">
   <title>RPi WebLauncher</title>
   <script>try { if (localStorage.getItem('rpi-theme') === 'light') document.documentElement.classList.add('theme-light'); } catch (_) {}</script>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ActuallyDigitsofpi314159/RPi-WebLauncher@28fe56e24690c68141815be92fcbed2614a5848e/styles.css?v=28fe56e">
+  <script>window.RPI_CDN_REVISION = '01d5d83b20205c7546589c6d71ae9fb19392d80c';</script>
+  <link id="launcher-styles" rel="stylesheet">
+  <script>document.querySelector('#launcher-styles').href = `https://cdn.jsdelivr.net/gh/ActuallyDigitsofpi314159/RPi-WebLauncher@${window.RPI_CDN_REVISION}/styles.css?v=${window.RPI_CDN_REVISION.slice(0, 7)}`;</script>
 </head>
 <body>
   <div class="ambient ambient-one" aria-hidden="true"></div>
@@ -95,7 +97,9 @@ and license text with third-party work, and obtain permission before redistribut
     <footer class="footer"><span>RPi WebLauncher</span><span class="footer-dot"></span><span>A little web arcade</span></footer>
   </section>
 
-  <script src="https://cdn.jsdelivr.net/gh/ActuallyDigitsofpi314159/RPi-WebLauncher@28fe56e24690c68141815be92fcbed2614a5848e/games.js?v=28fe56e"></script>
-  <script src="https://cdn.jsdelivr.net/gh/ActuallyDigitsofpi314159/RPi-WebLauncher@28fe56e24690c68141815be92fcbed2614a5848e/app.js?v=28fe56e"></script>
+  <script>
+    const cdnRoot = `https://cdn.jsdelivr.net/gh/ActuallyDigitsofpi314159/RPi-WebLauncher@${window.RPI_CDN_REVISION}/`;
+    ['games.js', 'app.js'].forEach(file => { const script = document.createElement('script'); script.src = `${cdnRoot}${file}?v=${window.RPI_CDN_REVISION.slice(0, 7)}`; script.async = false; document.body.appendChild(script); });
+  </script>
 </body>
 </html>

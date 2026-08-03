@@ -32,7 +32,6 @@ function applyView(view) {
 }
 
 function showView(view) {
-  history.pushState(null, '', view === 'credits' ? '#credits' : '#launcher');
   document.body.classList.add('view-switching');
   window.setTimeout(() => { applyView(view); document.body.classList.remove('view-switching'); }, 180);
 }
@@ -46,9 +45,22 @@ function bindViewLinks() {
 }
 
 function launch(file) {
-  const popup = window.open(file, '_blank', 'popup=yes,width=1280,height=800,resizable=yes,scrollbars=yes');
-  if (!popup) window.alert('Your browser blocked the program window. Please allow popups for RPi WebLauncher.');
-  else popup.focus();
+  const popup = window.open('about:blank', '_blank', 'popup=yes,width=1280,height=800,resizable=yes,scrollbars=yes');
+  if (!popup) { window.alert('Your browser blocked the program window. Please allow popups for RPi WebLauncher.'); return; }
+  popup.document.title = 'Loading program...';
+  fetch(file).then(response => {
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return response.text();
+  }).then(source => {
+    const base = file.slice(0, file.lastIndexOf('/') + 1);
+    const baseTag = `<base href="${base}">`;
+    const html = /<head[^>]*>/i.test(source) ? source.replace(/<head[^>]*>/i, match => `${match}${baseTag}`) : `<!doctype html><html><head>${baseTag}</head><body>${source}</body></html>`;
+    popup.document.open();
+    popup.document.write(html);
+    popup.document.close();
+  }).catch(error => {
+    popup.document.body.innerHTML = `<p style="font:16px system-ui;padding:24px">Unable to load this program.<br><small>${error.message}</small></p>`;
+  });
 }
 
 function updateThemeIcon() {
@@ -60,12 +72,10 @@ function updateThemeIcon() {
 filters.addEventListener('click', event => { const button = event.target.closest('[data-filter]'); if (!button) return; activeFilter = button.dataset.filter; filters.querySelectorAll('.filter-pill').forEach(pill => { const active = pill === button; pill.classList.toggle('active', active); pill.setAttribute('aria-selected', active); }); render(); });
 search.addEventListener('input', render);
 themeToggle.addEventListener('click', () => { isLightMode = !isLightMode; document.body.classList.toggle('light-mode', isLightMode); document.documentElement.classList.toggle('theme-light', isLightMode); try { localStorage.setItem('rpi-theme', isLightMode ? 'light' : 'dark'); } catch (_) {} updateThemeIcon(); });
-window.addEventListener('popstate', () => applyView(window.location.hash === '#credits' ? 'credits' : 'launcher'));
-window.addEventListener('hashchange', () => applyView(window.location.hash === '#credits' ? 'credits' : 'launcher'));
 document.body.classList.toggle('light-mode', isLightMode);
 updateThemeIcon();
 render();
-applyView(window.location.hash === '#credits' ? 'credits' : 'launcher');
+applyView('launcher');
 function tick() { document.querySelector('#clock').textContent = new Intl.DateTimeFormat([], { hour:'numeric', minute:'2-digit' }).format(new Date()); }
 tick();
 setInterval(tick, 30000);

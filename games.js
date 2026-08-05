@@ -20,8 +20,8 @@ const GAMES = [
     title: "Eaglercraft",
     category: "Engaging",
     rating: 2,
-    verdict: "Notably slow.",
-    description: "A blocky browser adventure with a big world.",
+    verdict: "Unstable and slow.",
+    description: "Minecraft from 2017, running in your browser.",
     image: cdn("assets/eaglercraftIcon.png"),
     file: program("games/eaglercraft.html"),
     credit: "PlanetDoge"
@@ -32,7 +32,7 @@ const GAMES = [
     category: "Apps",
     rating: 5,
     verdict: "Performance varies.",
-    description: "A playful local AI experiment made for the launcher.",
+    description: "Run AI models, even on limited hardware.",
     image: cdn("assets/dumbLLM.png"),
     file: program("games/dumLLM.html"),
     credit: "Digitsofpi314159 & Kineto"
@@ -43,7 +43,7 @@ const GAMES = [
     category: "Apps",
     rating: 5,
     verdict: "Performance varies.",
-    description: "A browser inside a browser, made for curious tabs.",
+    description: "A mostly functional browser inside a browser.",
     image: cdn("assets/GUST-logo.png"),
     file: program("games/GUST.html"),
     credit: "Nautilus Labs"
@@ -53,7 +53,7 @@ const GAMES = [
     title: "Granny",
     category: "Engaging",
     rating: 8,
-    verdict: "Runs great!",
+    verdict: "Can get your computer hot.",
     description: "A tense browser horror classic.",
     image: cdn("assets/granny-logo.webp"),
     file: program("games/granny.html"),
@@ -64,7 +64,7 @@ const GAMES = [
     title: "Basketball Legends",
     category: "Engaging",
     rating: 10,
-    verdict: "Runs prefectly.",
+    verdict: "Runs flawlessly.",
     description: "A full-court browser game; may be demanding on some devices.",
     image: cdn("assets/basketballLegendsIcon.png"),
     file: program("games/basketballLegends.html"),
@@ -76,7 +76,7 @@ const GAMES = [
     category: "Engaging",
     rating: 8,
     verdict: "Runs great!",
-    description: "A small platforming experiment.",
+    description: "A simple but fun 3D platformer.",
     image: cdn("assets/genericPlatformer3dIcon.png"),
     file: program("games/genericPlatformer.html"),
     credit: "Digitsofpi314159 & Kineto"
@@ -87,7 +87,7 @@ const GAMES = [
     category: "Engaging",
     rating: 6,
     verdict: "Runs alright.",
-    description: "A tiny arcade throwback.",
+    description: "Donkey Kong, with a laser cannon.",
     image: cdn("assets/donkeyKhanIcon.png"),
     file: program("games/donkeyKhan.html"),
     credit: "Digitsofpi314159 & Kineto"
@@ -98,7 +98,7 @@ const GAMES = [
     category: "Engaging",
     rating: 7.5,
     verdict: "Runs great!",
-    description: "Find the way through a quiet little puzzle.",
+    description: "A charming 3D platformer with a hopeful theme.",
     image: cdn("assets/pathOfLightIcon.png"),
     file: program("games/pathOfLight.html"),
     credit: "Digitsofpi314159 & Kineto"
@@ -109,7 +109,7 @@ const GAMES = [
     category: "Engaging",
     rating: 8.5,
     verdict: "Tune settings if slow.",
-    description: "A fast, chaotic browser FPS experience.",
+    description: "A fast, chaotic, and hilarious FPS.",
     image: cdn("assets/KarlsonIcon.png"),
     file: program("games/karlson.html"),
     credit: "Dat"
@@ -120,7 +120,7 @@ const GAMES = [
     category: "Engaging",
     rating: 8.5,
     verdict: "Tune settings if slow.",
-    description: "Build your hive, gather pollen, and grow your swarm.",
+    description: "A fun and relaxing game about growing a swarm of bees.",
     image: cdn("assets/beeSwarmSimulatorIcon.png"),
     file: program("games/beeSwarmSimulator.html"),
     credit: "Dat"
@@ -131,7 +131,7 @@ const GAMES = [
     category: "Puzzle",
     rating: 9,
     verdict: "Runs beautifully",
-    description: "A modern, animated take on the classic mine-clearing puzzle.",
+    description: "The boring old game with decent UI.",
     image: cdn("assets/minesweeper.svg"),
     file: program("games/minesweeper.html"),
     credit: "Digitsofpi314159 & Kineto"

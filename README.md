@@ -26,6 +26,12 @@ property of their respective creators.
 - Premium UI for selecting games.
 - Games open in isolated about:blank windows
 - Optimized for lightweight hardware and minimal overhead
+- GPT Luna uses the OpenAI API and requires your own API key; it does not run local WebGPU models.
+
+GPT Luna stores the API key in the current browser's `localStorage` when saved.
+The key is sent directly from the browser to OpenAI, so use a restricted key and
+avoid saving it on shared devices. Remove the key from the app and revoke it
+from your OpenAI account when it is no longer needed.
 
 ## Adding a program
 

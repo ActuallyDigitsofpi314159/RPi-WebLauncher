@@ -28,13 +28,13 @@ const GAMES = [
   },
 
   {
-    title: "dumbLLM",
+    title: "GPT Luna",
     category: "Apps",
     rating: 5,
-    verdict: "Performance varies.",
-    description: "Run AI models, even on limited hardware.",
+    verdict: "Requires an API key.",
+    description: "Chat with GPT-6 Luna using your OpenAI API key.",
     image: cdn("assets/dumbLLM.png"),
-    file: program("games/dumLLM.html"),
+    file: program("games/gptLuna.html"),
     credit: "Digitsofpi314159 & Kineto"
   },
 

@@ -97,7 +97,7 @@ const GAMES = [
     title: "Path of Light",
     category: "Engaging",
     rating: 4,
-    verdict: "Runs great!",
+    verdict: "Kinda slow.",
     description: "A charming 3D platformer with a hopeful theme.",
     image: cdn("assets/pathOfLightIcon.png"),
     file: program("games/pathOfLight.html"),
@@ -111,7 +111,7 @@ const GAMES = [
     verdict: "Runs well.",
     description: "A little passion project of ours",
     image: cdn("assets/dash-parkour-logo.png"),
-    file: program("dashparkour.html"),
+    file: program("games/dashparkour.html"),
     credit: "Digitsofpi314159 & Kineto"
   },
 

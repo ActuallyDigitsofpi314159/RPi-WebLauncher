@@ -30,7 +30,7 @@ const GAMES = [
   {
     title: "GPT Luna",
     category: "Apps",
-    rating: 5,
+    rating: 10,
     verdict: "Requires an API key.",
     description: "Chat with GPT-6 Luna using your OpenAI API key.",
     image: cdn("assets/dumbLLM.png"),
@@ -96,7 +96,7 @@ const GAMES = [
   {
     title: "Path of Light",
     category: "Engaging",
-    rating: 7.5,
+    rating: 4,
     verdict: "Runs great!",
     description: "A charming 3D platformer with a hopeful theme.",
     image: cdn("assets/pathOfLightIcon.png"),
@@ -112,6 +112,17 @@ const GAMES = [
     description: "A little passion project of ours",
     image: cdn("assets/dash-parkour-logo.png"),
     file: program("dashparkour.html"),
+    credit: "Digitsofpi314159 & Kineto"
+  },
+
+  {
+    title: "Tetris DX",
+    category: "Puzzle",
+    rating: 10,
+    verdict: "Runs beautifully.",
+    description: "Tetris DX, running in an offline Game Boy Color emulator.",
+    image: cdn("assets/tetrisDX.png"),
+    file: program("games/tetrisDX.html"),
     credit: "Digitsofpi314159 & Kineto"
   },
 
@@ -140,7 +151,7 @@ const GAMES = [
   {
     title: "Minesweeper",
     category: "Puzzle",
-    rating: 9,
+    rating: 10,
     verdict: "Runs beautifully",
     description: "The boring old game with decent UI.",
     image: cdn("assets/minesweeper.svg"),

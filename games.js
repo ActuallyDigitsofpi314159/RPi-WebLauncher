@@ -105,6 +105,17 @@ const GAMES = [
   },
 
   {
+    title: "DASH Parkour",
+    category: "Engaging",
+    rating: 6,
+    verdict: "Runs well.",
+    description: "A little passion project of ours",
+    image: cdn("assets/dash-parkour-logo.png"),
+    file: program("dashparkour.html"),
+    credit: "Digitsofpi314159 & Kineto"
+  },
+
+  {
     title: "Karlson",
     category: "Engaging",
     rating: 8.5,

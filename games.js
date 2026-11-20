@@ -31,6 +31,17 @@ const GAMES = [
   },
 
   {
+    title: "Minecraft 26.3-JM",
+    category: "Engaging",
+    rating: 3,
+    verdict: "Large download; demanding on memory.",
+    description: "A newer Minecraft browser build packaged as a standalone HTML file.",
+    image: cdn("assets/eaglercraftIcon.png"),
+    file: program("games/26.3-fixed.html"),
+    credit: "26.3-JM"
+  },
+
+  {
     title: "GPT Luna",
     category: "Apps",
     rating: 10,
@@ -182,7 +193,7 @@ const WEB_PORTS = [
   { repo: "jsab", title: "Just Shapes and Beats", rating: 6, description: "Dodge rhythm-synced hazards in a music-driven arcade game." },
   { repo: "tabs", title: "Totally Accurate Battle Simulator", rating: 3, description: "Build wobbly armies and watch physics-driven battles unfold." },
   { repo: "geometry-dash", title: "Geometry Dash", rating: 7, description: "A rhythm platformer built around precise jumps and timing." },
-  { repo: "ac-gamecube", title: "Animal Crossing (GameCube)", rating: 4, description: "A life-simulation game running through a browser port." },
+  { repo: "ac-gamecube", title: "Animal Crossing (GameCube)", rating: 4, description: "Needs a USA GAFE01 Rev 0 disc image; the upstream ROM picker is hidden." },
   { repo: "20-minutes", title: "20 Minutes", rating: 7, description: "Survive waves of enemies in a fast-paced top-down roguelite." },
   { repo: "terraria", title: "Terraria", rating: 3, description: "Explore, build, and fight in a large 2D sandbox. Expect a substantial download." },
   { repo: "spaceflight-simulator", title: "Spaceflight Simulator", rating: 4, description: "Design spacecraft and explore a physics-based solar system." },
@@ -284,7 +295,7 @@ WEB_PORTS.forEach(game => {
     description: game.description,
     image: iconUrl || (iconPath ? `https://cdn.jsdelivr.net/gh/web-ports/${game.repo}@${branch}/${iconPath}` : fallbackIcon),
     imageFallback: fallbackIcon,
-    file: `https://rawcdn.githack.com/web-ports/${game.repo}/${branch}/${file}`,
+    file: `https://cdn.jsdelivr.net/gh/web-ports/${game.repo}@${branch}/${file}`,
     credit: game.creditLabel || "web-ports",
     creditUrl: repoUrl
   });

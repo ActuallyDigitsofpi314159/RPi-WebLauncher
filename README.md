@@ -32,15 +32,19 @@ property of their respective creators.
 - Catalog entries link to their source repositories and show estimated performance ratings.
 - Web-Ports cards use upstream icons where available and generated title icons as a fallback.
 
-The Web-Ports catalog adds 53 playable pages from the public `web-ports`
+The Web-Ports catalog adds 53 pages from the public `web-ports`
 organization repositories, including multiple games from repositories that
 contain more than one entry page. The organization currently has 70 public
 repositories; after applying the 20 requested exclusions, 50 remain. One
 otherwise eligible repository (`castle-crashers`) currently has no game files.
-Each port is streamed inside an `about:blank` window from a `rawcdn.githack.com`
-mirror of its upstream repository rather than copied into this repository.
-Game downloads vary substantially; some Unity ports require hundreds of
-megabytes. Performance ratings are rough estimates, not measured benchmarks.
+Each port is streamed inside an `about:blank` window from jsDelivr's GitHub CDN
+rather than copied into this repository. Game downloads vary substantially;
+some Unity ports require hundreds of megabytes. Performance ratings are rough
+estimates, not measured benchmarks.
+
+Animal Crossing (GameCube) requires a USA GAFE01 Rev 0 disc image, which is not
+included. Its upstream page hides the ROM picker, so the game can remain on its
+loading screen when no compatible image is already available to the page.
 
 GPT Luna stores the API key in the current browser's `localStorage` when saved.
 The key is sent directly from the browser to OpenAI, so use a restricted key and

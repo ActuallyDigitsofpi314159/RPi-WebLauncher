@@ -23,6 +23,9 @@
   const FAVORITES = 'Favorites';
   const RECENT_LIMIT = 4;
 
+  try { localStorage.removeItem('gpt-luna-openai-api-key'); }
+  catch (error) { console.error('Unable to clear the legacy GPT Luna API key from shared storage:', error); }
+
   const read = (key, fallback) => {
     try { const value = localStorage.getItem(key); return value === null ? fallback : JSON.parse(value); } catch (_) { return fallback; }
   };
@@ -146,6 +149,111 @@
     toastTimer = setTimeout(() => { els.toast.hidden = true; }, 3200);
   }
 
+  function addProgramBase(html, program) {
+    const head = /<head\b[^>]*>/i.exec(html);
+    if (!head) throw new Error('Program HTML has no <head> element.');
+    const insertAt = head.index + head[0].length;
+    const base = `<base href="${escapeHtml(new URL('.', program.file).href)}">`;
+    const romPickerStyle = program.revealRomPicker
+      ? '<style>html body #rom-picker.visible { display: flex !important; }</style>'
+      : '';
+    return `${html.slice(0, insertAt)}${base}${romPickerStyle}${html.slice(insertAt)}`;
+  }
+
+  function revealAnimalCrossingRomPicker(html) {
+    const startup = /window\.showRomPicker\s*=\s*showRomPicker\s*,\s*hideRomPicker\(\)/;
+    let patched = html.replace(startup, 'window.showRomPicker = showRomPicker, showRomPicker()');
+    if (patched === html) throw new Error('Animal Crossing startup changed; its ROM picker could not be restored.');
+
+    const autoIso = /var _autoIsoPromise\s*=\s*_fetchIsoParts\(\)\.catch\(function\(\)\s*\{\s*return null;\s*\}\);/;
+    if (!autoIso.test(patched)) throw new Error('Animal Crossing auto-load changed; its hidden disc-image download could not be disabled.');
+    patched = patched.replace(autoIso, 'var _autoIsoPromise = Promise.resolve(null);');
+
+    const missingIso = /if\s*\(!blob\)\s*\{\s*console\.error\("\[rom\] game\.iso parts not found"\);\s*_autoLoaded = false;\s*return;\s*\}/;
+    if (!missingIso.test(patched)) throw new Error('Animal Crossing auto-load fallback changed; the manual disc-image prompt could not be restored.');
+    patched = patched.replace(missingIso, 'if (!blob) { var loadingText = document.getElementById("loading-text"); if (loadingText) loadingText.remove(); showRomPicker(); _autoLoaded = false; return; }');
+
+    return patched;
+  }
+
+  async function streamProgram(popup, program) {
+    const response = await fetch(program.file);
+    if (!response.ok) throw new Error(`Program request failed with status ${response.status}.`);
+    const doc = popup.document;
+
+    if (program.revealRomPicker) {
+      const html = await response.text();
+      if (popup.closed) return;
+      doc.open();
+      doc.write(addProgramBase(revealAnimalCrossingRomPicker(html), program));
+      doc.close();
+      popup.focus();
+      return;
+    }
+
+    doc.open();
+    const reader = response.body && response.body.getReader();
+    if (!reader) {
+      const html = await response.text();
+      if (popup.closed) return;
+      doc.write(addProgramBase(html, program));
+    } else {
+      const decoder = new TextDecoder();
+      let pending = '';
+      let baseAdded = false;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (popup.closed) {
+          reader.cancel().catch(error => console.error('Unable to stop the closed program download:', error));
+          return;
+        }
+        const chunk = decoder.decode(value || new Uint8Array(), { stream: !done });
+        if (!baseAdded) {
+          pending += chunk;
+          if (/<head\b[^>]*>/i.test(pending)) {
+            doc.write(addProgramBase(pending, program));
+            pending = '';
+            baseAdded = true;
+          } else if (pending.length > 1024 * 1024) {
+            reader.cancel().catch(error => console.error('Unable to stop the invalid program download:', error));
+            throw new Error('Program HTML has no <head> element in its first megabyte.');
+          }
+        } else if (chunk) {
+          doc.write(chunk);
+        }
+        if (done) break;
+      }
+
+      if (!baseAdded) throw new Error('Program HTML has no <head> element.');
+    }
+
+    doc.close();
+    if (!popup.closed) popup.focus();
+  }
+
+  function showPopupMessage(popup, title, message, detail = '') {
+    if (popup.closed) return;
+    const doc = popup.document;
+    doc.open();
+    doc.write(`<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>${escapeHtml(title)}</title>
+  <style>
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #0b0c12; color: #f4f4f5; font: 16px system-ui, sans-serif; }
+    main { max-width: 34rem; padding: 2rem; }
+    p, pre { color: #b7b8c2; }
+    pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+  </style>
+</head>
+<body><main><h1>${escapeHtml(title)}</h1><p>${escapeHtml(message)}</p>${detail ? `<pre>${escapeHtml(detail)}</pre>` : ''}</main></body>
+</html>`);
+    doc.close();
+  }
+
   function launch(id) {
     const program = byId.get(id);
     if (!program) return;
@@ -158,47 +266,18 @@
     const popup = window.open('about:blank', '_blank', `popup=yes,width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`);
     if (!popup) { toast('Your browser blocked the program window. Allow popups for RPi WebLauncher and try again.'); return; }
 
+    popup.opener = null;
     state.recent = [id, ...state.recent.filter(item => item !== id)].slice(0, RECENT_LIMIT);
     write(KEYS.recent, state.recent);
     renderRecent();
     toast(`Opening ${program.title}…`);
+    showPopupMessage(popup, program.title, 'Loading program…');
 
-    try {
-      const doc = popup.document;
-      doc.open();
-      doc.write(`<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>${escapeHtml(program.title)}</title>
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      background: #000;
-    }
-    iframe {
-      border: 0;
-      width: 100%;
-      height: 100%;
-      display: block;
-    }
-  </style>
-</head>
-<body>
-  <iframe src="${escapeHtml(program.file)}" allowfullscreen="true" allow="autoplay; fullscreen; gamepad; cross-origin-isolated; camera; microphone; clipboard-read; clipboard-write"></iframe>
-</body>
-</html>`);
-      doc.close();
-      popup.focus();
-    } catch (err) {
-      console.error('Launch error:', err);
-      popup.location.href = program.file;
-    }
+    streamProgram(popup, program).catch(error => {
+      console.error('Launch error:', error);
+      showPopupMessage(popup, `Could not load ${program.title}`, 'Check your connection and try again.', error instanceof Error ? error.message : String(error));
+      toast(`Could not load ${program.title}. Check your connection.`);
+    });
   }
 
   function toggleFavorite(id, button) {

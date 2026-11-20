@@ -294,7 +294,7 @@
 <main class="chat" id="chat">
   <div class="empty-state" id="empty-state">
     <div class="eyebrow"><span class="eyebrow-line"></span>GPT LUNA</div>
-    <p>Save your OpenAI API key, then initialize GPT-6 Luna. Requests run through OpenAI's API.</p>
+    <p>Save your OpenAI API key for this window session, then initialize GPT-6 Luna. Requests run through OpenAI's API.</p>
   </div>
 </main>
 
@@ -333,7 +333,7 @@
   }
 
   try {
-    apiKey = localStorage.getItem(API_KEY_STORAGE_KEY) || "";
+    apiKey = sessionStorage.getItem(API_KEY_STORAGE_KEY) || "";
     apiKeyInput.value = apiKey;
   } catch (error) {
     setStatus("error", "Browser storage unavailable — enter a key and check storage permissions.");
@@ -546,21 +546,21 @@
       return;
     }
     try {
-      localStorage.setItem(API_KEY_STORAGE_KEY, value);
+      sessionStorage.setItem(API_KEY_STORAGE_KEY, value);
       apiKey = value;
       resetToInitializeState();
-      setStatus(null, "API key saved in this browser.");
+      setStatus(null, "API key saved for this GPT window session.");
     } catch (error) {
       setStatus("error", "Unable to save the API key in browser storage.");
     }
   };
   removeKeyBtn.onclick = () => {
     try {
-      localStorage.removeItem(API_KEY_STORAGE_KEY);
+      sessionStorage.removeItem(API_KEY_STORAGE_KEY);
       apiKey = "";
       apiKeyInput.value = "";
       resetToInitializeState();
-      setStatus(null, "Saved API key removed.");
+      setStatus(null, "Saved API key removed from this session.");
     } catch (error) {
       setStatus("error", "Unable to remove the saved API key from browser storage.");
     }

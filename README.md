@@ -18,7 +18,7 @@ property of their respective creators.
 ## How it works
 1. Copy the root `index.html` or download it from the repository.
 2. Open it on your Pi, Chromebook, or desktop browser.
-3. Pick a program in the library. The launcher opens it in a dedicated `about:blank` window without loading the entire program in RAM.
+3. Pick a program in the library. The launcher fetches its HTML and streams it into a dedicated `about:blank` window; the program's additional assets load from their CDN as needed.
 
 ## Features
 - Portable single-file launcher; no local server or build step required.
@@ -26,7 +26,8 @@ property of their respective creators.
 - Clean, responsive library UI with dark/light themes.
 - Search (press `/` to jump to it), category tabs, sorting, and grid/list views.
 - Favorites and a "Continue playing" row, remembered in the browser's `localStorage`.
-- Games launch in dedicated `about:blank` windows via fullscreen streaming iframes (no loading multi-megabyte programs into browser RAM).
+- Programs launch in dedicated `about:blank` windows. The launcher streams HTML responses into the window so GitHub CDN pages run even when served with a plain-text MIME type, without holding a second full HTML string in memory.
+- Program scripts run with the launcher's origin and can access its browser storage. The launcher clears the legacy shared GPT Luna key, and GPT Luna now keeps its API key only in that program window's `sessionStorage`.
 - Optimized for lightweight hardware and minimal overhead
 - GPT Luna uses the OpenAI API and requires your own API key; it does not run local WebGPU models.
 - Catalog entries link to their source repositories and show estimated performance ratings.
@@ -37,18 +38,21 @@ organization repositories, including multiple games from repositories that
 contain more than one entry page. The organization currently has 70 public
 repositories; after applying the 20 requested exclusions, 50 remain. One
 otherwise eligible repository (`castle-crashers`) currently has no game files.
-Each port is streamed inside an `about:blank` window from jsDelivr's GitHub CDN
-rather than copied into this repository. Game downloads vary substantially;
+Each port's HTML is streamed into an `about:blank` window from jsDelivr's
+GitHub CDN rather than copied into this repository; relative resources load
+from the same upstream repository. Game downloads vary substantially;
 some Unity ports require hundreds of megabytes. Performance ratings are rough
 estimates, not measured benchmarks.
 
 Animal Crossing (GameCube) requires a USA GAFE01 Rev 0 disc image, which is not
-included. Its upstream page hides the ROM picker, so the game can remain on its
-loading screen when no compatible image is already available to the page.
+included. The upstream page hides its ROM picker and automatically loads split
+disc-image files, leaving a "LOADING..." banner while processing them. The
+launcher disables that automatic download and restores the picker so players
+can select their own disc image.
 
-GPT Luna stores the API key in the current browser's `localStorage` when saved.
-The key is sent directly from the browser to OpenAI, so use a restricted key and
-avoid saving it on shared devices. Remove the key from the app and revoke it
+GPT Luna keeps the API key in that program window's `sessionStorage`; closing
+the window clears it. The key is sent directly from the browser to OpenAI, so
+use a restricted key and avoid entering it on shared devices. Revoke the key
 from your OpenAI account when it is no longer needed.
 
 ## Adding a program
@@ -66,10 +70,9 @@ py -m http.server 8000
 ```
 
 The preview loads the launcher files from the local checkout. Playing Web-Ports
-games still requires an internet connection and downloads from their upstream
-repositories. Game pages launch in dedicated `about:blank` windows via fullscreen
-streaming iframes so games stream natively without filling RAM, while keeping
-scripts isolated from the launcher's local browser storage.
+games still requires an internet connection and fetches their HTML and assets
+from upstream repositories. Program scripts share the launcher's origin and
+browser storage while running in the popup.
 
 The portable launcher is pinned to a commit so jsDelivr cannot serve an older
 `main` snapshot. When publishing a new launcher build, update

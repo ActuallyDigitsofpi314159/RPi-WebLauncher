@@ -46,7 +46,7 @@ const GAMES = [
     category: "Apps",
     rating: 10,
     verdict: "Requires an API key.",
-    description: "Chat with GPT-6 Luna using your OpenAI API key.",
+    description: "Chat with GPT-6 Luna using an API key saved for this window session.",
     image: cdn("assets/dumbLLM.png"),
     file: program("games/gptLuna.html"),
     credit: "Digitsofpi314159 & Kineto"
@@ -193,7 +193,7 @@ const WEB_PORTS = [
   { repo: "jsab", title: "Just Shapes and Beats", rating: 6, description: "Dodge rhythm-synced hazards in a music-driven arcade game." },
   { repo: "tabs", title: "Totally Accurate Battle Simulator", rating: 3, description: "Build wobbly armies and watch physics-driven battles unfold." },
   { repo: "geometry-dash", title: "Geometry Dash", rating: 7, description: "A rhythm platformer built around precise jumps and timing." },
-  { repo: "ac-gamecube", title: "Animal Crossing (GameCube)", rating: 4, description: "Needs a USA GAFE01 Rev 0 disc image; the upstream ROM picker is hidden." },
+  { repo: "ac-gamecube", title: "Animal Crossing (GameCube)", rating: 4, description: "Requires a USA GAFE01 Rev 0 disc image; none is included.", revealRomPicker: true },
   { repo: "20-minutes", title: "20 Minutes", rating: 7, description: "Survive waves of enemies in a fast-paced top-down roguelite." },
   { repo: "terraria", title: "Terraria", rating: 3, description: "Explore, build, and fight in a large 2D sandbox. Expect a substantial download." },
   { repo: "spaceflight-simulator", title: "Spaceflight Simulator", rating: 4, description: "Design spacecraft and explore a physics-based solar system." },
@@ -296,6 +296,7 @@ WEB_PORTS.forEach(game => {
     image: iconUrl || (iconPath ? `https://cdn.jsdelivr.net/gh/web-ports/${game.repo}@${branch}/${iconPath}` : fallbackIcon),
     imageFallback: fallbackIcon,
     file: `https://cdn.jsdelivr.net/gh/web-ports/${game.repo}@${branch}/${file}`,
+    revealRomPicker: Boolean(game.revealRomPicker),
     credit: game.creditLabel || "web-ports",
     creditUrl: repoUrl
   });

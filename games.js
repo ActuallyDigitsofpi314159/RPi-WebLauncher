@@ -1,7 +1,10 @@
+const LOCAL_PREVIEW = ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
 const CDN_REVISION = window.RPI_CDN_REVISION || 'main';
-const CDN_BASE = `https://cdn.jsdelivr.net/gh/ActuallyDigitsofpi314159/RPi-WebLauncher@${CDN_REVISION}/`;
+const CDN_BASE = LOCAL_PREVIEW
+  ? new URL('.', window.location.href).href
+  : `https://cdn.jsdelivr.net/gh/ActuallyDigitsofpi314159/RPi-WebLauncher@${CDN_REVISION}/`;
 const CACHE_BUST = CDN_REVISION.slice(0, 7);
-const cdn = path => `${CDN_BASE}${path}?v=${CACHE_BUST}`;
+const cdn = path => `${CDN_BASE}${path}${LOCAL_PREVIEW ? '' : `?v=${CACHE_BUST}`}`;
 const program = path => `${CDN_BASE}${path}`;
 
 const GAMES = [

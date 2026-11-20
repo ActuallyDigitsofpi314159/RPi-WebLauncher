@@ -23,7 +23,9 @@ property of their respective creators.
 ## Features
 - Portable single-file launcher; no local server or build step required.
 - Shared assets are loaded from jsDelivr.
-- Premium UI for selecting games.
+- Clean, responsive library UI with dark/light themes.
+- Search (press `/` to jump to it), category tabs, sorting, and grid/list views.
+- Favorites and a "Continue playing" row, remembered in the browser's `localStorage`.
 - Games open in isolated about:blank windows
 - Optimized for lightweight hardware and minimal overhead
 - GPT Luna uses the OpenAI API and requires your own API key; it does not run local WebGPU models.

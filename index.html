@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0a0b13">
+  <meta name="theme-color" content="#0b0c12">
   <title>RPi WebLauncher</title>
   <script>try { if (localStorage.getItem('rpi-theme') === 'light') document.documentElement.classList.add('theme-light'); } catch (_) {}</script>
   <script>window.RPI_CDN_REVISION = '22979a09a83f2c533daf39b71a9f5ed5498e7aa4';</script>
@@ -11,53 +11,69 @@
   <script>document.querySelector('#launcher-styles').href = `https://cdn.jsdelivr.net/gh/ActuallyDigitsofpi314159/RPi-WebLauncher@${window.RPI_CDN_REVISION}/styles.css?v=${window.RPI_CDN_REVISION.slice(0, 7)}`;</script>
 </head>
 <body>
-  <div class="ambient ambient-one" aria-hidden="true"></div>
-  <div class="ambient ambient-two" aria-hidden="true"></div>
-
   <header class="topbar">
-    <button class="brand" type="button" aria-label="RPi WebLauncher home">
-      <span class="brand-mark"><span></span><span></span><span></span></span>
-      <span>RPi <b>WebLauncher</b></span>
-    </button>
-    <div class="topbar-actions">
-      <span class="system-status"><i></i> Local library</span>
-      <button class="icon-button" id="theme-toggle" type="button" aria-label="Switch to light mode" title="Switch to light mode">&#9788;</button>
+    <div class="topbar-inner">
+      <a class="brand view-link" href="#library" aria-label="RPi WebLauncher home">
+        <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+        <span class="brand-name">RPi <b>WebLauncher</b></span>
+      </a>
+      <label class="search" for="search">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>
+        <input id="search" type="search" placeholder="Search programs" autocomplete="off" spellcheck="false" aria-label="Search programs">
+        <kbd aria-hidden="true">/</kbd>
+      </label>
+      <div class="top-actions">
+        <span class="clock" id="clock" aria-label="Current time"></span>
+        <button class="icon-button" id="theme-toggle" type="button" aria-label="Switch to light mode" title="Switch to light mode"></button>
+      </div>
     </div>
   </header>
 
-  <main class="page-shell" id="launcher-view">
-    <section class="hero">
-      <div class="hero-copy">
-        <p class="eyebrow"><span class="eyebrow-line"></span> YOUR LITTLE ARCADE</p>
-        <h1>Play something<br><em>beautiful.</em></h1>
-        <p class="hero-text">A mini operating system for the Raspberry Pi, entirely in a browser.</p>
-      </div>
-      <div class="hero-art" aria-hidden="true">
-        <div class="orb orb-back"></div><div class="orb orb-front"></div>
-        <div class="hero-ring"></div>
-        <span class="pixel pixel-one"></span><span class="pixel pixel-two"></span><span class="pixel pixel-three"></span>
-      </div>
+  <main class="shell" id="launcher-view">
+    <section class="intro">
+      <p class="eyebrow">Your little arcade</p>
+      <h1>Play something <em>beautiful.</em></h1>
+      <p class="intro-text">A mini operating system for the Raspberry Pi, entirely in a browser.</p>
     </section>
 
-    <section class="toolbar" aria-label="Program filters">
-      <div class="section-heading"><span class="section-kicker">LIBRARY</span><span class="game-count" id="game-count"></span></div>
-      <div class="controls">
-        <label class="search-box"><span aria-hidden="true">&#8982;</span><input id="search" type="search" placeholder="Find a program..." autocomplete="off"></label>
-        <div class="filter-pills" id="filters" role="tablist" aria-label="Filter programs"></div>
+    <section class="recent" id="recent" aria-labelledby="recent-title" hidden>
+      <h2 class="section-title" id="recent-title">Continue playing</h2>
+      <div class="recent-row" id="recent-row"></div>
+    </section>
+
+    <section class="toolbar" aria-label="Library controls">
+      <div class="tabs" id="filters" role="tablist" aria-label="Filter programs"></div>
+      <div class="toolbar-end">
+        <span class="count" id="game-count" aria-live="polite"></span>
+        <label class="select-wrap">
+          <span class="visually-hidden">Sort programs</span>
+          <select id="sort">
+            <option value="featured">Featured</option>
+            <option value="performance">Best performance</option>
+            <option value="title">A &ndash; Z</option>
+          </select>
+        </label>
+        <div class="segmented" id="layout" role="group" aria-label="Layout">
+          <button type="button" data-layout="grid" aria-label="Grid view" title="Grid view"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/></svg></button>
+          <button type="button" data-layout="list" aria-label="List view" title="List view"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6.5h16M4 12h16M4 17.5h16"/></svg></button>
+        </div>
       </div>
     </section>
 
     <section class="game-grid" id="game-grid" aria-live="polite"></section>
-    <p class="empty-state" id="empty-state" hidden>No programs found. Try another search.</p>
+    <div class="empty-state" id="empty-state" hidden>
+      <p id="empty-message">No programs found.</p>
+      <button class="button" id="clear-filters" type="button">Clear search &amp; filters</button>
+    </div>
 
-    <footer class="footer"><span>RPi WebLauncher</span><span class="footer-dot"></span><a class="view-link" href="#credits">Credits &amp; licenses</a><span class="footer-spacer"></span><span id="clock"></span></footer>
+    <footer class="footer"><span>RPi WebLauncher</span><span class="footer-dot"></span><a class="view-link" href="#credits">Credits &amp; licenses</a><span class="footer-spacer"></span><span class="footer-hint"><kbd>/</kbd> search</span></footer>
   </main>
 
   <section class="credits-page" id="credits-view" hidden>
-    <a class="back-link view-link" href="#launcher">&#8592; Back to library</a>
-    <p class="eyebrow"><span class="eyebrow-line"></span> THE PEOPLE BEHIND THE PIXELS</p>
-    <h1>Credits &amp;<br><em>licenses.</em></h1>
-    <p class="hero-text">A small home for games, experiments, and useful little web things.</p>
+    <a class="back-link view-link" href="#library">&#8592; Back to library</a>
+    <p class="eyebrow">The people behind the pixels</p>
+    <h1>Credits &amp; <em>licenses.</em></h1>
+    <p class="intro-text">A small home for games, experiments, and useful little web things.</p>
     <section class="credits-card">
       <h2>Super Mario 64</h2><p>Created by <strong>ArkShocer</strong>.</p>
       <h2>EaglerLite / Eaglercraft</h2><p>Created by <strong>PlanetDoge</strong>. Distributed under the Apache License 2.0.</p>
@@ -98,6 +114,8 @@ text with third-party work, and obtain permission before redistributing it.</pre
     </section>
     <footer class="footer"><span>RPi WebLauncher</span><span class="footer-dot"></span><span>A little web arcade</span></footer>
   </section>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
   <script>
     const cdnRoot = `https://cdn.jsdelivr.net/gh/ActuallyDigitsofpi314159/RPi-WebLauncher@${window.RPI_CDN_REVISION}/`;

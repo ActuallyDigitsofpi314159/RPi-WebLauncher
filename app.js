@@ -12,7 +12,11 @@ filters.innerHTML = ['All','Puzzle','Engaging','Apps'].map((category, index) => 
 
 function cardTemplate(program, index) {
   const band = program.rating <= 3 ? 'performance-low' : program.rating <= 6 ? 'performance-mid' : 'performance-high';
-  return `<article class="game-card" style="--delay:${index * 55}ms"><button class="game-launch" type="button" data-file="${program.file}" aria-label="Launch ${program.title}"><div class="cover-wrap"><img class="cover" src="${program.image}" alt="${program.title} cover art" loading="lazy"><span class="play-button" aria-hidden="true">&#9654;</span></div><div class="card-body"><div class="card-meta"><span class="genre">${program.category}</span><span class="rating"><small>Performance</small><strong>${program.rating}</strong><small>/10</small></span></div><h2>${program.title}</h2><p>${program.description}</p><div class="card-bottom"><span class="verdict ${band}"><i></i>${program.verdict}</span><span class="launch-label">Play <span>&#8599;</span></span></div></div></button><a class="credit-link view-link" href="#credits">by ${program.credit}</a></article>`;
+  const credit = program.creditUrl
+    ? `<a class="credit-link" href="${program.creditUrl}" target="_blank" rel="noopener noreferrer">by ${program.credit}</a>`
+    : `<a class="credit-link view-link" href="#credits">by ${program.credit}</a>`;
+  const fallback = program.imageFallback ? `data-fallback="${program.imageFallback}"` : '';
+  return `<article class="game-card" style="--delay:${index * 55}ms"><button class="game-launch" type="button" data-file="${program.file}" aria-label="Launch ${program.title}"><div class="cover-wrap"><img class="cover" src="${program.image}" ${fallback} alt="${program.title} icon" loading="lazy"><span class="play-button" aria-hidden="true">&#9654;</span></div><div class="card-body"><div class="card-meta"><span class="genre">${program.category}</span><span class="rating"><small>Est. performance</small><strong>${program.rating}</strong><small>/10</small></span></div><h2>${program.title}</h2><p>${program.description}</p><div class="card-bottom"><span class="verdict ${band}"><i></i>${program.verdict}</span><span class="launch-label">Play <span>&#8599;</span></span></div></div></button>${credit}</article>`;
 }
 
 function render() {
@@ -21,6 +25,10 @@ function render() {
   grid.innerHTML = visible.map(cardTemplate).join('');
   count.textContent = `${visible.length} ${visible.length === 1 ? 'program' : 'programs'}`;
   empty.hidden = visible.length > 0;
+  grid.querySelectorAll('img[data-fallback]').forEach(image => image.addEventListener('error', () => {
+    const fallback = image.dataset.fallback;
+    if (image.src !== fallback) image.src = fallback;
+  }));
   grid.querySelectorAll('.game-launch').forEach(button => button.addEventListener('click', () => launch(button.dataset.file)));
   bindViewLinks();
 }
@@ -47,6 +55,11 @@ function bindViewLinks() {
 function launch(file) {
   const popup = window.open('about:blank', '_blank', 'popup=yes,width=1280,height=800,resizable=yes,scrollbars=yes');
   if (!popup) { window.alert('Your browser blocked the program window. Please allow popups for RPi WebLauncher.'); return; }
+  if (file.startsWith('https://rawcdn.githack.com/web-ports/')) {
+    popup.opener = null;
+    popup.location.replace(file);
+    return;
+  }
   popup.document.title = 'Loading program...';
   fetch(file).then(response => {
     if (!response.ok) throw new Error(`HTTP ${response.status}`);

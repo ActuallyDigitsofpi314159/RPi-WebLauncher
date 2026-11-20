@@ -16,7 +16,8 @@ function cardTemplate(program, index) {
     ? `<a class="credit-link" href="${program.creditUrl}" target="_blank" rel="noopener noreferrer">by ${program.credit}</a>`
     : `<a class="credit-link view-link" href="#credits">by ${program.credit}</a>`;
   const fallback = program.imageFallback ? `data-fallback="${program.imageFallback}"` : '';
-  return `<article class="game-card" style="--delay:${index * 55}ms"><button class="game-launch" type="button" data-file="${program.file}" aria-label="Launch ${program.title}"><div class="cover-wrap"><img class="cover" src="${program.image}" ${fallback} alt="${program.title} icon" loading="lazy"><span class="play-button" aria-hidden="true">&#9654;</span></div><div class="card-body"><div class="card-meta"><span class="genre">${program.category}</span><span class="rating"><small>Est. performance</small><strong>${program.rating}</strong><small>/10</small></span></div><h2>${program.title}</h2><p>${program.description}</p><div class="card-bottom"><span class="verdict ${band}"><i></i>${program.verdict}</span><span class="launch-label">Play <span>&#8599;</span></span></div></div></button>${credit}</article>`;
+  const escapedTitle = (program.title || '').replace(/"/g, '&quot;');
+  return `<article class="game-card" style="--delay:${index * 55}ms"><button class="game-launch" type="button" data-file="${program.file}" data-title="${escapedTitle}" aria-label="Launch ${program.title}"><div class="cover-wrap"><img class="cover" src="${program.image}" ${fallback} alt="${program.title} icon" loading="lazy"><span class="play-button" aria-hidden="true">&#9654;</span></div><div class="card-body"><div class="card-meta"><span class="genre">${program.category}</span><span class="rating"><small>Est. performance</small><strong>${program.rating}</strong><small>/10</small></span></div><h2>${program.title}</h2><p>${program.description}</p><div class="card-bottom"><span class="verdict ${band}"><i></i>${program.verdict}</span><span class="launch-label">Play <span>&#8599;</span></span></div></div></button>${credit}</article>`;
 }
 
 function render() {
@@ -29,7 +30,9 @@ function render() {
     const fallback = image.dataset.fallback;
     if (image.src !== fallback) image.src = fallback;
   }));
-  grid.querySelectorAll('.game-launch').forEach(button => button.addEventListener('click', () => launch(button.dataset.file)));
+  grid.querySelectorAll('.game-launch').forEach(button => button.addEventListener('click', () => {
+    launch(button.dataset.file, button.dataset.title);
+  }));
   bindViewLinks();
 }
 
@@ -52,28 +55,54 @@ function bindViewLinks() {
   });
 }
 
-function launch(file) {
-  const popup = window.open('about:blank', '_blank', 'popup=yes,width=1280,height=800,resizable=yes,scrollbars=yes');
-  if (!popup) { window.alert('Your browser blocked the program window. Please allow popups for RPi WebLauncher.'); return; }
-  if (file.startsWith('https://rawcdn.githack.com/web-ports/')) {
-    popup.opener = null;
-    popup.location.replace(file);
+function launch(file, title = 'RPi WebLauncher') {
+  const screenW = window.screen ? window.screen.availWidth : 1280;
+  const screenH = window.screen ? window.screen.availHeight : 800;
+  const width = Math.min(1280, Math.max(800, Math.floor(screenW * 0.95)));
+  const height = Math.min(800, Math.max(600, Math.floor(screenH * 0.95)));
+  const left = Math.max(0, Math.floor((screenW - width) / 2));
+  const top = Math.max(0, Math.floor((screenH - height) / 2));
+  const popup = window.open('about:blank', '_blank', `popup=yes,width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`);
+  if (!popup) {
+    window.alert('Your browser blocked the program window. Please allow popups for RPi WebLauncher.');
     return;
   }
-  popup.document.title = 'Loading program...';
-  fetch(file).then(response => {
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    return response.text();
-  }).then(source => {
-    const base = file.slice(0, file.lastIndexOf('/') + 1);
-    const baseTag = `<base href="${base}">`;
-    const html = /<head[^>]*>/i.test(source) ? source.replace(/<head[^>]*>/i, match => `${match}${baseTag}`) : `<!doctype html><html><head>${baseTag}</head><body>${source}</body></html>`;
-    popup.document.open();
-    popup.document.write(html);
-    popup.document.close();
-  }).catch(error => {
-    popup.document.body.innerHTML = `<p style="font:16px system-ui;padding:24px">Unable to load this program.<br><small>${error.message}</small></p>`;
-  });
+  try {
+    const doc = popup.document;
+    doc.open();
+    doc.write(`<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>${title}</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+    }
+    iframe {
+      border: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <iframe src="${file}" allowfullscreen="true" allow="autoplay; fullscreen; gamepad; cross-origin-isolated; camera; microphone; clipboard-read; clipboard-write"></iframe>
+</body>
+</html>`);
+    doc.close();
+    popup.focus();
+  } catch (err) {
+    console.error('Launch error:', err);
+    popup.location.href = file;
+  }
 }
 
 function updateThemeIcon() {

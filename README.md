@@ -18,25 +18,25 @@ property of their respective creators.
 ## How it works
 1. Copy the root `index.html` or download it from the repository.
 2. Open it on your Pi, Chromebook, or desktop browser.
-3. Pick a program in the library. The launcher opens its CDN-hosted HTML file in a new browser window.
+3. Pick a program in the library. The launcher opens it in a dedicated `about:blank` window without loading the entire program in RAM.
 
 ## Features
 - Portable single-file launcher; no local server or build step required.
 - Shared assets are loaded from jsDelivr.
 - Premium UI for selecting games.
-- Games open in separate windows; Web-Ports pages stay on an upstream origin.
+- Games launch in dedicated `about:blank` windows via fullscreen streaming iframes (no loading multi-megabyte programs into browser RAM).
 - Optimized for lightweight hardware and minimal overhead
 - GPT Luna uses the OpenAI API and requires your own API key; it does not run local WebGPU models.
 - Catalog entries link to their source repositories and show estimated performance ratings.
 - Web-Ports cards use upstream icons where available and generated title icons as a fallback.
 
-The Web-Ports catalog adds 52 playable pages from the public `web-ports`
+The Web-Ports catalog adds 53 playable pages from the public `web-ports`
 organization repositories, including multiple games from repositories that
-contain more than one entry page. The organization currently has 69 public
-repositories; after applying the 20 requested exclusions, 49 remain. One
-otherwise eligible repository had no game files available. Each port is opened
-from a `rawcdn.githack.com` mirror of its upstream repository rather than
-copied into this repository.
+contain more than one entry page. The organization currently has 70 public
+repositories; after applying the 20 requested exclusions, 50 remain. One
+otherwise eligible repository (`castle-crashers`) currently has no game files.
+Each port is streamed inside an `about:blank` window from a `rawcdn.githack.com`
+mirror of its upstream repository rather than copied into this repository.
 Game downloads vary substantially; some Unity ports require hundreds of
 megabytes. Performance ratings are rough estimates, not measured benchmarks.
 
@@ -61,8 +61,9 @@ py -m http.server 8000
 
 The preview loads the launcher files from the local checkout. Playing Web-Ports
 games still requires an internet connection and downloads from their upstream
-repositories. Game pages open on a separate origin so their scripts cannot
-read the launcher's local browser storage.
+repositories. Game pages launch in dedicated `about:blank` windows via fullscreen
+streaming iframes so games stream natively without filling RAM, while keeping
+scripts isolated from the launcher's local browser storage.
 
 The portable launcher is pinned to a commit so jsDelivr cannot serve an older
 `main` snapshot. When publishing a new launcher build, update

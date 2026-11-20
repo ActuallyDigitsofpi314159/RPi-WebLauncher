@@ -225,10 +225,12 @@ const WEB_PORTS = [
   { repo: "fnaf-into-the-pit", title: "Five Nights at Freddy's: Into the Pit", rating: 5, description: "A 2D adventure with a detailed pixel-art world." },
   { repo: "pet-the-cat", title: "Pet the Cat", rating: 8, description: "A small, lightweight browser game." },
   { repo: "talking-hippo", title: "Talking Hippo", rating: 7, description: "A casual browser game." },
-  { repo: "countryballsdictator", title: "Countryballs Dictator", rating: 6, description: "A strategy game from the Web-Ports catalog." }
+  { repo: "countryballsdictator", title: "Countryballs Dictator", rating: 6, description: "A strategy game from the Web-Ports catalog." },
+  { repo: "daddygame", title: "Who's Your Daddy?", rating: 4, description: "A comedic asymmetric multiplayer game about a father keeping his baby safe." }
 ];
 
 const WEB_PORT_ICONS = {
+  cuphead: "TemplateData/favicon.ico",
   "hollow-knight-silksong": "TemplateData/favicon.ico",
   "hollow-knight": "TemplateData/favicon.ico",
   granny: "TemplateData/favicon.ico",
@@ -251,11 +253,20 @@ const WEB_PORT_ICONS = {
   scoutdingo: "favicon.png",
   gash: "TemplateData/favicon.ico",
   "power-hover": "TemplateData/favicon.ico",
-  "talking-hippo": "TemplateData/favicon.ico"
+  "talking-hippo": "TemplateData/favicon.ico",
+  "gorilla-tag": "TemplateData/favicon.ico",
+  adgac: "TemplateData/favicon.ico",
+  "duck-8": "TemplateData/favicon.ico",
+  tabs: "TemplateData/favicon.ico",
+  "ac-gamecube": "icon-192.png",
+  "geometry-dash": "favicon.ico",
+  "fnaf-into-the-pit": "TemplateData/favicon.ico",
+  pvz: "properties/partner_logo.jpg"
 };
 
 const WEB_PORT_ICON_URLS = {
-  terraria: "https://terraria.mercurywork.shop/app.webp"
+  terraria: "https://terraria.mercurywork.shop/app.webp",
+  countryballsdictator: "https://raw.githubusercontent.com/web-ports/countryballsdictator/main/TemplateData/favicon.ico"
 };
 
 WEB_PORTS.forEach(game => {

@@ -1,4 +1,4 @@
-const LOCAL_PREVIEW = ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
+const LOCAL_PREVIEW = Boolean(window.RPI_LOCAL_PREVIEW) || (typeof window !== 'undefined' && Boolean(window.location) && new URLSearchParams(window.location.search).has('local'));
 const CDN_REVISION = window.RPI_CDN_REVISION || 'main';
 const CDN_BASE = LOCAL_PREVIEW
   ? new URL('.', window.location.href).href

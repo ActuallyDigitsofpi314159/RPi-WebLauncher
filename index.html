@@ -6,8 +6,12 @@
   <meta name="theme-color" content="#0b0c12">
   <title>RPi WebLauncher</title>
   <script>try { if (localStorage.getItem('rpi-theme') === 'light') document.documentElement.classList.add('theme-light'); } catch (_) {}</script>
-  <script>window.RPI_CDN_REVISION = '4a6c5e602f463d1b38ec3b60d12066f057164312';</script>
+  <script>window.RPI_CDN_REVISION = '0e9786995890e2a656349e1eaa209ef190f1bca8';</script>
   <link id="launcher-styles" rel="stylesheet">
+  <script>
+    const isLocal = Boolean(window.RPI_LOCAL_PREVIEW) || new URLSearchParams(window.location.search).has('local');
+    document.querySelector('#launcher-styles').href = isLocal ? 'styles.css' : `https://cdn.jsdelivr.net/gh/ActuallyDigitsofpi314159/RPi-WebLauncher@${window.RPI_CDN_REVISION}/styles.css?v=${window.RPI_CDN_REVISION.slice(0, 7)}`;
+  </script>
 </head>
 <body>
   <header class="topbar">
@@ -119,10 +123,14 @@ text with third-party work, and obtain permission before redistributing it.</pre
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
   <script>
+    const isLocal = Boolean(window.RPI_LOCAL_PREVIEW) || new URLSearchParams(window.location.search).has('local');
     const cdnRoot = `https://cdn.jsdelivr.net/gh/ActuallyDigitsofpi314159/RPi-WebLauncher@${window.RPI_CDN_REVISION}/`;
-    const localPreview = ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
-    document.querySelector('#launcher-styles').href = localPreview ? 'styles.css' : `https://cdn.jsdelivr.net/gh/ActuallyDigitsofpi314159/RPi-WebLauncher@${window.RPI_CDN_REVISION}/styles.css?v=${window.RPI_CDN_REVISION.slice(0, 7)}`;
-    ['games.js', 'app.js'].forEach(file => { const script = document.createElement('script'); script.src = localPreview ? file : `${cdnRoot}${file}?v=${window.RPI_CDN_REVISION.slice(0, 7)}`; script.async = false; document.body.appendChild(script); });
+    ['games.js', 'app.js'].forEach(file => {
+      const script = document.createElement('script');
+      script.src = isLocal ? file : `${cdnRoot}${file}?v=${window.RPI_CDN_REVISION.slice(0, 7)}`;
+      script.async = false;
+      document.body.appendChild(script);
+    });
   </script>
 </body>
 </html>

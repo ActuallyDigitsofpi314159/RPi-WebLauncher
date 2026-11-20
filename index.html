@@ -8,10 +8,6 @@
   <script>try { if (localStorage.getItem('rpi-theme') === 'light') document.documentElement.classList.add('theme-light'); } catch (_) {}</script>
   <script>window.RPI_CDN_REVISION = '56a11104e5bdb747dd7c45bbd197905211db3cdb';</script>
   <link id="launcher-styles" rel="stylesheet">
-  <script>
-    const isLocal = Boolean(window.RPI_LOCAL_PREVIEW) || new URLSearchParams(window.location.search).has('local');
-    document.querySelector('#launcher-styles').href = isLocal ? 'styles.css' : `https://cdn.jsdelivr.net/gh/ActuallyDigitsofpi314159/RPi-WebLauncher@${window.RPI_CDN_REVISION}/styles.css?v=${window.RPI_CDN_REVISION.slice(0, 7)}`;
-  </script>
 </head>
 <body>
   <header class="topbar">
@@ -123,14 +119,18 @@ text with third-party work, and obtain permission before redistributing it.</pre
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
   <script>
-    const isLocal = Boolean(window.RPI_LOCAL_PREVIEW) || new URLSearchParams(window.location.search).has('local');
-    const cdnRoot = `https://cdn.jsdelivr.net/gh/ActuallyDigitsofpi314159/RPi-WebLauncher@${window.RPI_CDN_REVISION}/`;
-    ['games.js', 'app.js'].forEach(file => {
-      const script = document.createElement('script');
-      script.src = isLocal ? file : `${cdnRoot}${file}?v=${window.RPI_CDN_REVISION.slice(0, 7)}`;
-      script.async = false;
-      document.body.appendChild(script);
-    });
+    (function () {
+      var isLocal = Boolean(window.RPI_LOCAL_PREVIEW) || new URLSearchParams(window.location.search).has('local');
+      var rev = window.RPI_CDN_REVISION;
+      var cdnRoot = 'https://cdn.jsdelivr.net/gh/ActuallyDigitsofpi314159/RPi-WebLauncher@' + rev + '/';
+      document.querySelector('#launcher-styles').href = isLocal ? 'styles.css' : cdnRoot + 'styles.css?v=' + rev.slice(0, 7);
+      ['games.js', 'app.js'].forEach(function (file) {
+        var s = document.createElement('script');
+        s.src = isLocal ? file : cdnRoot + file + '?v=' + rev.slice(0, 7);
+        s.async = false;
+        document.body.appendChild(s);
+      });
+    })();
   </script>
 </body>
 </html>

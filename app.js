@@ -1,81 +1,177 @@
-const grid = document.querySelector('#game-grid');
-const search = document.querySelector('#search');
-const filters = document.querySelector('#filters');
-const count = document.querySelector('#game-count');
-const empty = document.querySelector('#empty-state');
-const themeToggle = document.querySelector('#theme-toggle');
-let activeFilter = 'All';
-let isLightMode = false;
-try { isLightMode = localStorage.getItem('rpi-theme') === 'light'; } catch (_) {}
+(() => {
+  const $ = selector => document.querySelector(selector);
+  const els = {
+    grid: $('#game-grid'),
+    search: $('#search'),
+    filters: $('#filters'),
+    sort: $('#sort'),
+    layout: $('#layout'),
+    count: $('#game-count'),
+    empty: $('#empty-state'),
+    emptyMessage: $('#empty-message'),
+    clear: $('#clear-filters'),
+    recent: $('#recent'),
+    recentRow: $('#recent-row'),
+    theme: $('#theme-toggle'),
+    toast: $('#toast'),
+    clock: $('#clock'),
+    launcher: $('#launcher-view'),
+    credits: $('#credits-view')
+  };
 
-filters.innerHTML = ['All','Puzzle','Engaging','Apps'].map((category, index) => `<button class="filter-pill ${index === 0 ? 'active' : ''}" type="button" role="tab" aria-selected="${index === 0}" data-filter="${category}">${category}</button>`).join('');
+  const KEYS = { theme: 'rpi-theme', favorites: 'rpi-favorites', recent: 'rpi-recent', sort: 'rpi-sort', layout: 'rpi-layout' };
+  const FAVORITES = 'Favorites';
+  const RECENT_LIMIT = 4;
 
-function cardTemplate(program, index) {
-  const band = program.rating <= 3 ? 'performance-low' : program.rating <= 6 ? 'performance-mid' : 'performance-high';
-  const credit = program.creditUrl
-    ? `<a class="credit-link" href="${program.creditUrl}" target="_blank" rel="noopener noreferrer">by ${program.credit}</a>`
-    : `<a class="credit-link view-link" href="#credits">by ${program.credit}</a>`;
-  const fallback = program.imageFallback ? `data-fallback="${program.imageFallback}"` : '';
-  const escapedTitle = (program.title || '').replace(/"/g, '&quot;');
-  return `<article class="game-card" style="--delay:${index * 55}ms"><button class="game-launch" type="button" data-file="${program.file}" data-title="${escapedTitle}" aria-label="Launch ${program.title}"><div class="cover-wrap"><img class="cover" src="${program.image}" ${fallback} alt="${program.title} icon" loading="lazy"><span class="play-button" aria-hidden="true">&#9654;</span></div><div class="card-body"><div class="card-meta"><span class="genre">${program.category}</span><span class="rating"><small>Est. performance</small><strong>${program.rating}</strong><small>/10</small></span></div><h2>${program.title}</h2><p>${program.description}</p><div class="card-bottom"><span class="verdict ${band}"><i></i>${program.verdict}</span><span class="launch-label">Play <span>&#8599;</span></span></div></div></button>${credit}</article>`;
-}
+  const read = (key, fallback) => {
+    try { const value = localStorage.getItem(key); return value === null ? fallback : JSON.parse(value); } catch (_) { return fallback; }
+  };
+  const write = (key, value) => { try { localStorage.setItem(key, JSON.stringify(value)); } catch (_) {} };
 
-function render() {
-  const term = search.value.trim().toLowerCase();
-  const visible = GAMES.filter(program => (activeFilter === 'All' || program.category === activeFilter) && `${program.title} ${program.description} ${program.category}`.toLowerCase().includes(term));
-  grid.innerHTML = visible.map(cardTemplate).join('');
-  count.textContent = `${visible.length} ${visible.length === 1 ? 'program' : 'programs'}`;
-  empty.hidden = visible.length > 0;
-  grid.querySelectorAll('img[data-fallback]').forEach(image => image.addEventListener('error', () => {
-    const fallback = image.dataset.fallback;
-    if (image.src !== fallback) image.src = fallback;
-  }));
-  grid.querySelectorAll('.game-launch').forEach(button => button.addEventListener('click', () => {
-    launch(button.dataset.file, button.dataset.title);
-  }));
-  bindViewLinks();
-}
+  const icons = {
+    star: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3.6 2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg>',
+    play: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>',
+    sun: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6 7 7M17 17l1.4 1.4M5.6 18.4 7 17M17 7l1.4-1.4"/></svg>',
+    moon: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/></svg>'
+  };
 
-function applyView(view) {
-  document.querySelector('#launcher-view').hidden = view !== 'launcher';
-  document.querySelector('#credits-view').hidden = view !== 'credits';
-  window.scrollTo(0, 0);
-}
+  const escapeHtml = value => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
+  const slug = title => title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  const band = rating => (rating <= 3 ? 'low' : rating <= 6 ? 'mid' : 'high');
 
-function showView(view) {
-  document.body.classList.add('view-switching');
-  window.setTimeout(() => { applyView(view); document.body.classList.remove('view-switching'); }, 180);
-}
+  const programs = GAMES.map((program, index) => ({ ...program, id: slug(program.title), order: index }));
+  const byId = new Map(programs.map(program => [program.id, program]));
+  const categories = ['All', ...new Set(programs.map(program => program.category)), FAVORITES];
 
-function bindViewLinks() {
-  document.querySelectorAll('.view-link').forEach(link => {
-    if (link.dataset.bound) return;
-    link.dataset.bound = 'true';
-    link.addEventListener('click', event => { event.preventDefault(); showView(link.getAttribute('href') === '#credits' ? 'credits' : 'launcher'); });
-  });
-}
+  const state = {
+    filter: 'All',
+    query: '',
+    sort: read(KEYS.sort, 'featured'),
+    layout: read(KEYS.layout, 'grid'),
+    favorites: new Set(read(KEYS.favorites, []).filter(id => byId.has(id))),
+    recent: read(KEYS.recent, []).filter(id => byId.has(id)),
+    light: false
+  };
+  if (!['featured', 'performance', 'title'].includes(state.sort)) state.sort = 'featured';
+  if (!['grid', 'list'].includes(state.layout)) state.layout = 'grid';
+  try { state.light = localStorage.getItem(KEYS.theme) === 'light'; } catch (_) {}
 
-function launch(file, title = 'RPi WebLauncher') {
-  const screenW = window.screen ? window.screen.availWidth : 1280;
-  const screenH = window.screen ? window.screen.availHeight : 800;
-  const width = Math.min(1280, Math.max(800, Math.floor(screenW * 0.95)));
-  const height = Math.min(800, Math.max(600, Math.floor(screenH * 0.95)));
-  const left = Math.max(0, Math.floor((screenW - width) / 2));
-  const top = Math.max(0, Math.floor((screenH - height) / 2));
-  const popup = window.open('about:blank', '_blank', `popup=yes,width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`);
-  if (!popup) {
-    window.alert('Your browser blocked the program window. Please allow popups for RPi WebLauncher.');
-    return;
+  /* ---------- rendering ---------- */
+
+  function cardTemplate(program, index) {
+    const favorite = state.favorites.has(program.id);
+    const level = band(program.rating);
+    const creditLink = program.creditUrl
+      ? `<a class="credit" href="${escapeHtml(program.creditUrl)}" target="_blank" rel="noopener noreferrer">by ${escapeHtml(program.credit)}</a>`
+      : `<a class="credit" href="#credits">by ${escapeHtml(program.credit)}</a>`;
+    const fallback = program.imageFallback ? ` data-fallback="${escapeHtml(program.imageFallback)}"` : '';
+    return `<article class="card" data-id="${program.id}" style="--i:${Math.min(index, 12)}">
+      <button class="card-main" type="button" data-action="launch" aria-label="Play ${escapeHtml(program.title)}">
+        <span class="cover-wrap"><img class="cover" src="${escapeHtml(program.image)}"${fallback} alt="" loading="lazy" decoding="async"><span class="play" aria-hidden="true">${icons.play}</span></span>
+        <span class="card-body">
+          <span class="card-top"><span class="tag">${escapeHtml(program.category)}</span><span class="score ${level}" title="Performance on low-power devices">${program.rating}<small>/10</small></span></span>
+          <span class="title">${escapeHtml(program.title)}</span>
+          <span class="desc">${escapeHtml(program.description)}</span>
+          <span class="meter ${level}" aria-hidden="true"><i style="width:${Math.max(0, Math.min(10, program.rating)) * 10}%"></i></span>
+          <span class="verdict ${level}">${escapeHtml(program.verdict)}</span>
+        </span>
+      </button>
+      <button class="fav" type="button" data-action="favorite" aria-pressed="${favorite}" aria-label="${favorite ? 'Remove' : 'Add'} ${escapeHtml(program.title)} ${favorite ? 'from' : 'to'} favorites" title="${favorite ? 'Remove from favorites' : 'Add to favorites'}">${icons.star}</button>
+      ${creditLink}
+    </article>`;
   }
-  try {
-    const doc = popup.document;
-    doc.open();
-    doc.write(`<!doctype html>
+
+  function recentTemplate(program) {
+    return `<button class="recent-item" type="button" data-id="${program.id}" data-action="launch" aria-label="Play ${escapeHtml(program.title)}">
+      <img src="${escapeHtml(program.image)}" alt="" loading="lazy" decoding="async">
+      <span class="recent-text"><span class="title">${escapeHtml(program.title)}</span><span class="verdict ${band(program.rating)}">${escapeHtml(program.verdict)}</span></span>
+      <span class="recent-play" aria-hidden="true">${icons.play}</span>
+    </button>`;
+  }
+
+  function visiblePrograms() {
+    const terms = state.query.toLowerCase().split(/\s+/).filter(Boolean);
+    const list = programs.filter(program => {
+      if (state.filter === FAVORITES ? !state.favorites.has(program.id) : state.filter !== 'All' && program.category !== state.filter) return false;
+      const haystack = `${program.title} ${program.description} ${program.category} ${program.credit}`.toLowerCase();
+      return terms.every(term => haystack.includes(term));
+    });
+    if (state.sort === 'performance') list.sort((a, b) => b.rating - a.rating || a.order - b.order);
+    else if (state.sort === 'title') list.sort((a, b) => a.title.localeCompare(b.title));
+    return list;
+  }
+
+  function renderTabs() {
+    els.filters.innerHTML = categories.map(category => {
+      const total = category === 'All' ? programs.length : category === FAVORITES ? state.favorites.size : programs.filter(program => program.category === category).length;
+      const active = category === state.filter;
+      return `<button class="tab${active ? ' active' : ''}" type="button" role="tab" aria-selected="${active}" data-filter="${category}">${category}<span>${total}</span></button>`;
+    }).join('');
+  }
+
+  function renderRecent() {
+    const show = state.filter === 'All' && !state.query && state.recent.length > 0;
+    els.recent.hidden = !show;
+    if (show) els.recentRow.innerHTML = state.recent.slice(0, RECENT_LIMIT).map(id => recentTemplate(byId.get(id))).join('');
+  }
+
+  function render() {
+    const list = visiblePrograms();
+    els.grid.className = `game-grid ${state.layout}`;
+    els.grid.innerHTML = list.map(cardTemplate).join('');
+    els.grid.querySelectorAll('img[data-fallback]').forEach(image => image.addEventListener('error', () => {
+      const fb = image.dataset.fallback;
+      if (fb && image.src !== fb) image.src = fb;
+    }));
+    els.count.textContent = `${list.length} ${list.length === 1 ? 'program' : 'programs'}`;
+    els.empty.hidden = list.length > 0;
+    if (!list.length) {
+      els.emptyMessage.textContent = state.filter === FAVORITES && !state.query
+        ? 'No favorites yet. Tap the star on any program to pin it here.'
+        : 'No programs match your search.';
+      els.clear.hidden = state.filter === FAVORITES && !state.query;
+    }
+    renderTabs();
+    renderRecent();
+    els.layout.querySelectorAll('[data-layout]').forEach(button => button.setAttribute('aria-pressed', button.dataset.layout === state.layout));
+  }
+
+  /* ---------- actions ---------- */
+
+  let toastTimer;
+  function toast(message) {
+    els.toast.textContent = message;
+    els.toast.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { els.toast.hidden = true; }, 3200);
+  }
+
+  function launch(id) {
+    const program = byId.get(id);
+    if (!program) return;
+    const screenW = window.screen ? window.screen.availWidth : 1280;
+    const screenH = window.screen ? window.screen.availHeight : 800;
+    const width = Math.min(1280, Math.max(800, Math.floor(screenW * 0.95)));
+    const height = Math.min(800, Math.max(600, Math.floor(screenH * 0.95)));
+    const left = Math.max(0, Math.floor((screenW - width) / 2));
+    const top = Math.max(0, Math.floor((screenH - height) / 2));
+    const popup = window.open('about:blank', '_blank', `popup=yes,width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`);
+    if (!popup) { toast('Your browser blocked the program window. Allow popups for RPi WebLauncher and try again.'); return; }
+
+    state.recent = [id, ...state.recent.filter(item => item !== id)].slice(0, RECENT_LIMIT);
+    write(KEYS.recent, state.recent);
+    renderRecent();
+    toast(`Opening ${program.title}…`);
+
+    try {
+      const doc = popup.document;
+      doc.open();
+      doc.write(`<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>${title}</title>
+  <title>${escapeHtml(program.title)}</title>
   <style>
     html, body {
       margin: 0;
@@ -94,30 +190,127 @@ function launch(file, title = 'RPi WebLauncher') {
   </style>
 </head>
 <body>
-  <iframe src="${file}" allowfullscreen="true" allow="autoplay; fullscreen; gamepad; cross-origin-isolated; camera; microphone; clipboard-read; clipboard-write"></iframe>
+  <iframe src="${escapeHtml(program.file)}" allowfullscreen="true" allow="autoplay; fullscreen; gamepad; cross-origin-isolated; camera; microphone; clipboard-read; clipboard-write"></iframe>
 </body>
 </html>`);
-    doc.close();
-    popup.focus();
-  } catch (err) {
-    console.error('Launch error:', err);
-    popup.location.href = file;
+      doc.close();
+      popup.focus();
+    } catch (err) {
+      console.error('Launch error:', err);
+      popup.location.href = program.file;
+    }
   }
-}
 
-function updateThemeIcon() {
-  themeToggle.innerHTML = isLightMode ? '&#9790;' : '&#9788;';
-  themeToggle.setAttribute('aria-label', isLightMode ? 'Switch to dark mode' : 'Switch to light mode');
-  themeToggle.title = isLightMode ? 'Switch to dark mode' : 'Switch to light mode';
-}
+  function toggleFavorite(id, button) {
+    const program = byId.get(id);
+    const on = !state.favorites.has(id);
+    if (on) state.favorites.add(id); else state.favorites.delete(id);
+    write(KEYS.favorites, [...state.favorites]);
+    if (state.filter === FAVORITES) { render(); return; }
+    button.setAttribute('aria-pressed', on);
+    button.setAttribute('aria-label', `${on ? 'Remove' : 'Add'} ${program.title} ${on ? 'from' : 'to'} favorites`);
+    button.title = on ? 'Remove from favorites' : 'Add to favorites';
+    renderTabs();
+  }
 
-filters.addEventListener('click', event => { const button = event.target.closest('[data-filter]'); if (!button) return; activeFilter = button.dataset.filter; filters.querySelectorAll('.filter-pill').forEach(pill => { const active = pill === button; pill.classList.toggle('active', active); pill.setAttribute('aria-selected', active); }); render(); });
-search.addEventListener('input', render);
-themeToggle.addEventListener('click', () => { isLightMode = !isLightMode; document.body.classList.toggle('light-mode', isLightMode); document.documentElement.classList.toggle('theme-light', isLightMode); try { localStorage.setItem('rpi-theme', isLightMode ? 'light' : 'dark'); } catch (_) {} updateThemeIcon(); });
-document.body.classList.toggle('light-mode', isLightMode);
-updateThemeIcon();
-render();
-applyView('launcher');
-function tick() { document.querySelector('#clock').textContent = new Intl.DateTimeFormat([], { hour:'numeric', minute:'2-digit' }).format(new Date()); }
-tick();
-setInterval(tick, 30000);
+  function resetFilters() {
+    state.filter = 'All';
+    state.query = '';
+    els.search.value = '';
+    render();
+  }
+
+  function applyTheme() {
+    document.documentElement.classList.toggle('theme-light', state.light);
+    els.theme.innerHTML = state.light ? icons.moon : icons.sun;
+    const label = state.light ? 'Switch to dark mode' : 'Switch to light mode';
+    els.theme.setAttribute('aria-label', label);
+    els.theme.title = label;
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.content = state.light ? '#f3f4ef' : '#0b0c12';
+  }
+
+  function applyView() {
+    const showCredits = location.hash === '#credits';
+    els.launcher.hidden = showCredits;
+    els.credits.hidden = !showCredits;
+    window.scrollTo(0, 0);
+  }
+
+  /* ---------- events ---------- */
+
+  els.grid.addEventListener('click', event => {
+    const target = event.target.closest('[data-action]');
+    const card = event.target.closest('.card');
+    if (!target || !card) return;
+    if (target.dataset.action === 'launch') launch(card.dataset.id);
+    else if (target.dataset.action === 'favorite') toggleFavorite(card.dataset.id, target);
+  });
+
+  els.recentRow.addEventListener('click', event => {
+    const item = event.target.closest('[data-action="launch"]');
+    if (item) launch(item.dataset.id);
+  });
+
+  els.filters.addEventListener('click', event => {
+    const tab = event.target.closest('[data-filter]');
+    if (!tab) return;
+    state.filter = tab.dataset.filter;
+    render();
+    els.filters.querySelector('.active')?.focus({ preventScroll: true });
+  });
+
+  els.filters.addEventListener('keydown', event => {
+    if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
+    const tabs = [...els.filters.querySelectorAll('.tab')];
+    const next = tabs[(tabs.indexOf(document.activeElement) + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length];
+    if (next) { event.preventDefault(); next.click(); }
+  });
+
+  els.search.addEventListener('input', () => {
+    state.query = els.search.value.trim();
+    if (location.hash === '#credits') location.hash = '#library';
+    render();
+  });
+  els.search.addEventListener('keydown', event => {
+    if (event.key === 'Escape') { els.search.value = ''; state.query = ''; render(); els.search.blur(); }
+  });
+
+  els.sort.value = state.sort;
+  els.sort.addEventListener('change', () => { state.sort = els.sort.value; write(KEYS.sort, state.sort); render(); });
+
+  els.layout.addEventListener('click', event => {
+    const button = event.target.closest('[data-layout]');
+    if (!button) return;
+    state.layout = button.dataset.layout;
+    write(KEYS.layout, state.layout);
+    render();
+  });
+
+  els.clear.addEventListener('click', resetFilters);
+
+  els.theme.addEventListener('click', () => {
+    state.light = !state.light;
+    try { localStorage.setItem(KEYS.theme, state.light ? 'light' : 'dark'); } catch (_) {}
+    applyTheme();
+  });
+
+  document.addEventListener('keydown', event => {
+    if (event.key !== '/' || event.ctrlKey || event.metaKey || event.altKey) return;
+    if (/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName)) return;
+    event.preventDefault();
+    if (location.hash === '#credits') location.hash = '#library';
+    els.search.focus();
+    els.search.select();
+  });
+
+  window.addEventListener('hashchange', applyView);
+
+  function tick() { els.clock.textContent = new Intl.DateTimeFormat([], { hour: 'numeric', minute: '2-digit' }).format(new Date()); }
+
+  applyTheme();
+  render();
+  applyView();
+  tick();
+  setInterval(tick, 30000);
+})();

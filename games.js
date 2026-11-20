@@ -114,7 +114,7 @@ const GAMES = [
     verdict: "Runs well.",
     description: "A little passion project of ours",
     image: cdn("assets/dash-parkour-logo.png"),
-    file: program("games/dashparkour.html"),
+    file: program("games/dash-parkour.html"),
     credit: "Digitsofpi314159 & Kineto"
   },
 

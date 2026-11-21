@@ -23,12 +23,18 @@ property of their respective creators.
 ## Features
 - Portable single-file launcher; no local server or build step required.
 - Shared assets are loaded from jsDelivr.
-- Clean, responsive library UI with dark/light themes.
+- Responsive library UI styled after the Digits & Kineto website.
 - Search (press `/` to jump to it), category tabs, sorting, and grid/list views.
 - Favorites and a "Continue playing" row, remembered in the browser's `localStorage`.
 - Programs launch in dedicated `about:blank` windows. The launcher streams HTML responses into the window so GitHub CDN pages run even when served with a plain-text MIME type, without holding a second full HTML string in memory.
 - Program scripts run with the launcher's origin and can access its browser storage. The launcher clears the legacy shared GPT Luna key, and GPT Luna now keeps its API key only in that program window's `sessionStorage`.
-- Optimized for lightweight hardware and minimal overhead
+- Optimized for lightweight hardware and minimal overhead.
+- Low-power mode (on by default, toggle in the header) injects a small shim
+  into each program before its own scripts run: it renders at 1x pixel density,
+  disables WebGL antialiasing, and closes the previous program window when you
+  open another so only one program holds memory at a time. Animal Crossing
+  additionally renders at the GameCube's native 640x480 instead of 1920x1440
+  and skips `preserveDrawingBuffer` unless a display filter is enabled.
 - GPT Luna uses the OpenAI API and requires your own API key; it does not run local WebGPU models.
 - Catalog entries link to their source repositories and show estimated performance ratings.
 - Web-Ports cards use upstream icons where available and generated title icons as a fallback.

@@ -377,6 +377,51 @@
     return patched;
   }
 
+  function patchGeometryDash(html) {
+    if (!/new\s+Worker\s*\(/.test(html)) {
+      throw new Error('Geometry Dash worker setup changed; its browser compatibility patch could not be applied.');
+    }
+
+    const workerPatch = `<script>
+(() => {
+  const NativeWorker = window.Worker;
+  window.Worker = function(url, options) {
+    if (!String(url).includes('brotli-worker.js')) {
+      return new NativeWorker(url, options);
+    }
+
+    const proxy = { onmessage: null, onerror: null };
+    let decoderPromise;
+
+    proxy.postMessage = message => {
+      decoderPromise ||= import('https://cdn.jsdelivr.net/gh/web-ports/geometry-dash/brotli-decoder.js');
+      decoderPromise
+        .then(async module => {
+          await module.default();
+          return module.decompress(new Uint8Array(message.buffer));
+        })
+        .then(result => {
+          const output = result instanceof Uint8Array ? result : new Uint8Array(result);
+          const copy = output.slice().buffer;
+          if (proxy.onmessage) proxy.onmessage({ data: { id: message.id, buffer: copy } });
+        })
+        .catch(error => {
+          if (proxy.onmessage) proxy.onmessage({ data: { id: message.id, error: String(error) } });
+        });
+    };
+
+    proxy.terminate = () => {};
+    return proxy;
+  };
+})();
+</script>`;
+
+    const head = /<head\b[^>]*>/i.exec(html);
+    if (!head) throw new Error('Geometry Dash HTML has no <head> element.');
+    const insertAt = head.index + head[0].length;
+    return `${html.slice(0, insertAt)}${workerPatch}${html.slice(insertAt)}`;
+  }
+
   async function streamProgram(popup, program) {
 
     const response = await fetch(program.file);
@@ -385,17 +430,18 @@
 
     const doc = popup.document;
 
-
-
-    if (program.revealRomPicker) {
+    if (program.revealRomPicker || program.id === 'geometry-dash') {
 
       const html = await response.text();
 
       if (popup.closed) return;
 
       doc.open();
+      const patchedHtml = program.revealRomPicker
+        ? revealAnimalCrossingRomPicker(html)
+        : patchGeometryDash(html);
 
-      doc.write(addProgramBase(revealAnimalCrossingRomPicker(html), program));
+      doc.write(addProgramBase(patchedHtml, program));
 
       doc.close();
 

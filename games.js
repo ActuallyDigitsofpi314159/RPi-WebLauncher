@@ -185,7 +185,7 @@ function webPortIcon(title) {
 }
 
 const WEB_PORTS = [
-  { repo: "hollow-knight-silksong", branch: "master", title: "Hollow Knight: Silksong", rating: 5, description: "Explore a hand-drawn kingdom in this 2D action platformer." },
+  { repo: "hollow-knight-silksong", title: "Hollow Knight: Silksong", rating: 5, description: "Explore a hand-drawn kingdom in this 2D action platformer." },
   { repo: "cuphead", title: "Cuphead", rating: 5, description: "A run-and-gun adventure with animated boss battles." },
   { repo: "hollow-knight", title: "Hollow Knight", rating: 7, description: "Explore a vast underground kingdom in this 2D action adventure." },
   { repo: "granny", title: "Granny (Web-Ports)", rating: 2, description: "Escape a house while avoiding its pursuer. Large download; demanding on memory." },
@@ -193,7 +193,7 @@ const WEB_PORTS = [
   { repo: "jsab", title: "Just Shapes and Beats", rating: 6, description: "Dodge rhythm-synced hazards in a music-driven arcade game." },
   { repo: "tabs", title: "Totally Accurate Battle Simulator", rating: 3, description: "Build wobbly armies and watch physics-driven battles unfold." },
   { repo: "geometry-dash", title: "Geometry Dash", rating: 7, description: "A rhythm platformer built around precise jumps and timing." },
-  { repo: "ac-gamecube", title: "Animal Crossing (GameCube)", rating: 4, description: "Requires a USA GAFE01 Rev 0 disc image; none is included.", revealRomPicker: true },
+  { repo: "ac-gamecube", title: "Animal Crossing (GameCube)", rating: 4, description: "Automatically loads the USA GAFE01 Rev 0 disc image; a local copy can be selected if the download fails.", revealRomPicker: true },
   { repo: "20-minutes", title: "20 Minutes", rating: 7, description: "Survive waves of enemies in a fast-paced top-down roguelite." },
   { repo: "terraria", title: "Terraria", rating: 3, description: "Explore, build, and fight in a large 2D sandbox. Expect a substantial download." },
   { repo: "spaceflight-simulator", title: "Spaceflight Simulator", rating: 4, description: "Design spacecraft and explore a physics-based solar system." },
@@ -283,7 +283,6 @@ const WEB_PORT_ICON_URLS = {
 WEB_PORTS.forEach(game => {
   const repoUrl = `https://github.com/web-ports/${game.repo}`;
   const file = game.path || "index.html";
-  const branch = game.branch || "main";
   const iconPath = WEB_PORT_ICONS[game.repo];
   const iconUrl = WEB_PORT_ICON_URLS[game.repo];
   const fallbackIcon = webPortIcon(game.title);
@@ -293,9 +292,9 @@ WEB_PORTS.forEach(game => {
     rating: game.rating,
     verdict: game.rating <= 3 ? "Estimate: demanding" : game.rating <= 6 ? "Estimate: moderate" : "Estimate: light",
     description: game.description,
-    image: iconUrl || (iconPath ? `https://cdn.jsdelivr.net/gh/web-ports/${game.repo}@${branch}/${iconPath}` : fallbackIcon),
+    image: iconUrl || (iconPath ? `https://cdn.jsdelivr.net/gh/web-ports/${game.repo}/${iconPath}` : fallbackIcon),
     imageFallback: fallbackIcon,
-    file: `https://cdn.jsdelivr.net/gh/web-ports/${game.repo}@${branch}/${file}`,
+    file: `https://cdn.jsdelivr.net/gh/web-ports/${game.repo}/${file}`,
     revealRomPicker: Boolean(game.revealRomPicker),
     credit: game.creditLabel || "web-ports",
     creditUrl: repoUrl

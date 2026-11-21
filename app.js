@@ -394,12 +394,13 @@
     let decoderPromise;
 
     proxy.postMessage = message => {
-      decoderPromise ||= import('https://cdn.jsdelivr.net/gh/web-ports/geometry-dash/brotli-decoder.js');
-      decoderPromise
+      decoderPromise ||= import('https://cdn.jsdelivr.net/gh/web-ports/geometry-dash/brotli-decoder.js')
         .then(async module => {
           await module.default();
-          return module.decompress(new Uint8Array(message.buffer));
-        })
+          return module;
+        });
+      decoderPromise
+        .then(module => module.decompress(new Uint8Array(message.buffer)))
         .then(result => {
           const output = result instanceof Uint8Array ? result : new Uint8Array(result);
           const copy = output.slice().buffer;
